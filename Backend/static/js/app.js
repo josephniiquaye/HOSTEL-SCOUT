@@ -1,0 +1,1 @@
+console.log("HOSTEL SCOUT Loaded Successfully");

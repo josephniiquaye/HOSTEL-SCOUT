@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}
+HOSTEL SCOUT | Home
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <h1>
+            Find Your Perfect Hostel Before You Arrive
+        </h1>
+
+        <p>
+            Search, Compare and Book Student Accommodation Online.
+        </p>
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                placeholder="Enter Location">
+
+            <select>
+
+                <option>Room Type</option>
+                <option>Single Room</option>
+                <option>Double Room</option>
+                <option>Self Contained</option>
+
+            </select>
+
+            <button>
+                Search
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="featured">
+
+    <h2>Featured Hostels</h2>
+
+    <div class="hostel-grid">
+
+        <div class="card">
+
+            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+
+            <h3>Royal Hostel</h3>
+
+            <p>₵1,500 / Semester</p>
+
+            <button>View Details</button>
+
+        </div>
+
+        <div class="card">
+
+            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+
+            <h3>Campus View</h3>
+
+            <p>₵1,800 / Semester</p>
+
+            <button>View Details</button>
+
+        </div>
+
+        <div class="card">
+
+            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+
+            <h3>Victory Hostel</h3>
+
+            <p>₵2,000 / Semester</p>
+
+            <button>View Details</button>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
