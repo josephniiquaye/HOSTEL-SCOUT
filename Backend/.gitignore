@@ -16,3 +16,7 @@ Backend/static/uploads/
 # Instance folder
 instance/
 Backend/instance/
+
+# Uploaded files
+static/uploads/*
+!static/uploads/.gitkeep
