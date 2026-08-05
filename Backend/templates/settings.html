@@ -1,0 +1,208 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Settings
+{% endblock %}
+
+{% block page_title %}
+Account Settings
+{% endblock %}
+
+{% block content %}
+
+<div class="settings-container">
+
+    <!-- Account Information -->
+
+    <div class="settings-card">
+
+        <h2>
+            <i class="fa-solid fa-user"></i>
+            Account Information
+        </h2>
+
+        <form method="POST">
+
+            <div class="form-group">
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    name="fullname"
+                    value="{{ user.fullname }}"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Email Address</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ user.email }}"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Phone Number</label>
+
+                <input
+                    type="text"
+                    name="phone"
+                    value="{{ user.phone }}"
+                    required>
+
+            </div>
+
+            <button class="btn">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Save Changes
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- Security -->
+
+    <div class="settings-card">
+
+        <h2>
+
+            <i class="fa-solid fa-lock"></i>
+
+            Security
+
+        </h2>
+
+        <div class="setting-row">
+
+            <div>
+
+                <strong>Password</strong>
+
+                <p>Update your account password.</p>
+
+            </div>
+
+            <a class="btn"
+               href="{{ url_for('auth.forgot_password') }}">
+
+                Change Password
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Notifications -->
+
+    <div class="settings-card">
+
+        <h2>
+
+            <i class="fa-solid fa-bell"></i>
+
+            Notifications
+
+        </h2>
+
+        <div class="setting-row">
+
+            <div>
+
+                Email Notifications
+
+            </div>
+
+            <label class="switch">
+
+                <input
+                    type="checkbox"
+                    checked>
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+        <div class="setting-row">
+
+            <div>
+
+                Booking Updates
+
+            </div>
+
+            <label class="switch">
+
+                <input
+                    type="checkbox"
+                    checked>
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+        <div class="setting-row">
+
+            <div>
+
+                Promotional Emails
+
+            </div>
+
+            <label class="switch">
+
+                <input
+                    type="checkbox">
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+    </div>
+
+    <!-- Danger Zone -->
+
+    <div class="settings-card danger-card">
+
+        <h2>
+
+            <i class="fa-solid fa-triangle-exclamation"></i>
+
+            Danger Zone
+
+        </h2>
+
+        <p>
+
+            Permanently remove your account.
+
+        </p>
+
+        <button class="btn btn-danger">
+
+            Delete Account
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}

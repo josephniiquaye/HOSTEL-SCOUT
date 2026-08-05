@@ -1,0 +1,113 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+My Bookings
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>My Bookings</h1>
+
+    {% if bookings %}
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Hostel</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for booking in bookings %}
+
+        <tr>
+
+            <td>{{ booking.hostel.name }}</td>
+
+            <td>{{ booking.hostel.location }}</td>
+
+            <td>
+
+                {% if booking.status == "Approved" %}
+
+                    <span class="badge bg-success">
+                         Approved
+                    </span>
+
+                {% elif booking.status == "Pending" %}
+
+                    <span class="badge bg-warning">
+                         Pending
+                    </span>
+
+                {% elif booking.status == "Rejected" %}
+
+                    <span class="badge bg-danger">
+                         Rejected
+                    </span>
+
+                {% elif booking.status == "Cancelled" %}
+
+                    <span class="badge bg-secondary">
+                         Cancelled
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                {% if booking.status == "Pending" %}
+
+                    <a
+                        href="{{ url_for('booking.cancel_booking', booking_id=booking.id) }}"
+                        class="btn btn-danger"
+                        onclick="return confirm('Are you sure you want to cancel this booking?');">
+
+                        Cancel Booking
+
+                    </a>
+
+                {% elif booking.status == "Approved" %}
+
+                    <a
+                        class="btn"
+                        href="{{ url_for('pdf.booking_receipt', booking_id=booking.id) }}">
+
+                        📄 Download Receipt
+
+                    </a>
+
+                {% else %}
+
+                    <span>-</span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <p>No bookings yet.</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

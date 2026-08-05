@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}
+Resend Verification
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h2>Didn't receive the verification email?</h2>
+
+        <p>
+            Enter the email address you used to register.
+        </p>
+
+        <form method="POST">
+
+            <div class="input-group">
+
+                <label>Email Address</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    required
+                    class="auth-input">
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn">
+
+                Send Verification Email
+
+            </button>
+
+        </form>
+
+        <br>
+
+        <a href="{{ url_for('auth.login') }}">
+
+            Back to Login
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

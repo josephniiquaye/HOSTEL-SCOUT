@@ -8,8 +8,13 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>{% block title %}HOSTEL SCOUT{% endblock %}</title>
+    <title>
+        {% block title %}
+        HOSTEL SCOUT
+        {% endblock %}
+    </title>
 
+    <!-- Google Font -->
     <link rel="preconnect"
           href="https://fonts.googleapis.com">
 
@@ -17,9 +22,14 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
 
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- Main CSS -->
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 
@@ -27,14 +37,81 @@
 
 <body>
 
-    {% include 'components/navbar.html' %}
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
 
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Content -->
     {% block content %}
     {% endblock %}
 
-    {% include 'components/footer.html' %}
+    <!-- Footer -->
+    {% include "components/footer.html" %}
 
+    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+     
+<script>
+document.querySelectorAll(".gallery").forEach(function(gallery){
+
+    const images = gallery.querySelectorAll(".gallery-image");
+
+    if(images.length <= 1) return;
+
+    let index = 0;
+
+    const counter = gallery.querySelector(".current");
+
+    function show(i){
+
+        images.forEach(img=>img.classList.remove("active"));
+
+        images[i].classList.add("active");
+
+        counter.textContent = i + 1;
+
+    }
+
+    gallery.querySelector(".gallery-next").onclick=function(){
+
+        index++;
+
+        if(index>=images.length)
+            index=0;
+
+        show(index);
+
+    }
+
+    gallery.querySelector(".gallery-prev").onclick=function(){
+
+        index--;
+
+        if(index<0)
+            index=images.length-1;
+
+        show(index);
+
+    };
+
+});
+</script>
+
+
 
 </body>
 

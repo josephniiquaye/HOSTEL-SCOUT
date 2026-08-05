@@ -1,0 +1,45 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+
+<h1>Notifications</h1>
+
+{% if notifications %}
+
+    {% for n in notifications %}
+
+        <div class="card">
+
+            <p>{{ n.message }}</p>
+
+            <small>{{ n.created_at.strftime("%d %b %Y %H:%M") }}</small>
+
+            <br><br>
+
+            {% if not n.is_read %}
+                <a href="{{ url_for('notification.mark_read', id=n.id) }}">
+                    Mark as Read
+                </a>
+            {% endif %}
+
+            |
+
+            <a href="{{ url_for('notification.delete_notification', id=n.id) }}">
+                Delete
+            </a>
+
+        </div>
+
+        <br>
+
+    {% endfor %}
+
+{% else %}
+
+<p>No notifications yet.</p>
+
+{% endif %}
+
+{% endblock %}

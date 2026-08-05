@@ -1,0 +1,40 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Review Hostel{% endblock %}
+
+{% block content %}
+
+<h1>Review {{ hostel.name }}</h1>
+
+<form method="POST">
+
+    <label>Rating</label>
+
+    <select name="rating" required>
+
+        <option value="5">★★★★★</option>
+        <option value="4">★★★★☆</option>
+        <option value="3">★★★☆☆</option>
+        <option value="2">★★☆☆☆</option>
+        <option value="1">★☆☆☆☆</option>
+
+    </select>
+
+    <br><br>
+
+    <label>Comment</label>
+
+    <textarea
+        name="comment"
+        rows="6"
+        required></textarea>
+
+    <br><br>
+
+    <button class="btn">
+        Submit Review
+    </button>
+
+</form>
+
+{% endblock %}

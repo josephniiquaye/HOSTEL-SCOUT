@@ -1,0 +1,169 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+
+<div class="profile-page">
+
+    <!-- Profile Card -->
+
+    <div class="profile-header">
+
+        <div class="profile-cover"></div>
+
+        <div class="profile-info">
+
+            <div class="profile-image-wrapper">
+
+                {% if user.profile_image %}
+
+                <img
+                    src="{{ url_for('static', filename='uploads/' ~ user.profile_image) }}"
+                    class="profile-preview">
+
+                {% else %}
+
+                <div class="profile-placeholder">
+
+                    {{ user.fullname[0]|upper }}
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+            <div class="profile-details">
+
+                <h2>
+
+                    {{ user.fullname }}
+
+                    {% if user.is_verified %}
+
+                    <span class="verified-badge">
+                        ✓ Verified
+                    </span>
+
+                    {% endif %}
+
+                </h2>
+
+                <p>{{ user.email }}</p>
+
+                <small>
+
+                    {{ user.role|capitalize }}
+
+                    •
+
+                    Member since
+                    {{ user.created_at.strftime('%B %Y') }}
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="profile-grid">
+
+        <!-- Left -->
+
+        <div class="profile-card">
+
+            <h3>Account Information</h3>
+
+            <div class="profile-stat">
+                <strong>Role</strong>
+                <span>{{ user.role|capitalize }}</span>
+            </div>
+
+            <div class="profile-stat">
+                <strong>Email</strong>
+                <span>{{ user.email }}</span>
+            </div>
+
+            <div class="profile-stat">
+                <strong>Phone</strong>
+                <span>{{ user.phone }}</span>
+            </div>
+
+            <div class="profile-stat">
+                <strong>Status</strong>
+
+                {% if user.is_verified %}
+                <span class="status verified">
+                    Verified
+                </span>
+                {% else %}
+                <span class="status pending">
+                    Pending Verification
+                </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <!-- Right -->
+
+        <div class="profile-card">
+
+            <h3>Edit Profile</h3>
+
+            <form method="POST"
+                  enctype="multipart/form-data">
+
+                <label>Profile Picture</label>
+
+                <input
+                    type="file"
+                    name="profile_image">
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    name="fullname"
+                    value="{{ user.fullname }}"
+                    required>
+
+                <label>Email</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ user.email }}"
+                    required>
+
+                <label>Phone</label>
+
+                <input
+                    type="text"
+                    name="phone"
+                    value="{{ user.phone }}"
+                    required>
+
+                <button
+                    class="btn"
+                    type="submit">
+
+                    Save Changes
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

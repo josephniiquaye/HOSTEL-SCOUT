@@ -1,0 +1,215 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+My Hostels
+{% endblock %}
+
+{% block page_title %}
+My Hostels
+{% endblock %}
+
+{% block content %}
+
+<div class="my-hostels-page">
+
+    <div class="page-header">
+
+        <div>
+
+            <h1>
+                <i class="fa-solid fa-building-user"></i>
+                My Hostels
+            </h1>
+
+            <p>
+                Manage all your listed hostels from one place.
+            </p>
+
+        </div>
+
+        <a class="btn add-btn"
+           href="{{ url_for('hostel.add_hostel') }}">
+
+            <i class="fa-solid fa-plus"></i>
+
+            Add Hostel
+
+        </a>
+
+    </div>
+
+    {% if hostels %}
+
+    <div class="hostel-grid">
+
+        {% for hostel in hostels %}
+
+        <div class="hostel-card">
+
+            {% if hostel.image %}
+
+            <img
+            src="{{ url_for('static', filename='uploads/' ~ hostel.image) }}"
+            alt="{{ hostel.name }}">
+
+            {% else %}
+
+            <img
+            src="{{ url_for('static', filename='images/default-hostel.jpg') }}">
+
+            {% endif %}
+
+            <div class="card-body">
+
+                <div class="hostel-header">
+
+                    <h2>{{ hostel.name }}</h2>
+
+                    {% if hostel.rooms_available > 0 %}
+
+                    <span class="status available">
+
+                        Available
+
+                    </span>
+
+                    {% else %}
+
+                    <span class="status full">
+
+                        Full
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="rating">
+
+                    {% if hostel.review_count > 0 %}
+
+                        ⭐ {{ hostel.average_rating }}/5
+
+                        ({{ hostel.review_count }} Reviews)
+
+                    {% else %}
+
+                        No Reviews Yet
+
+                    {% endif %}
+
+                </div>
+
+                <div class="hostel-info">
+
+                    <p>
+
+                        <i class="fa-solid fa-location-dot"></i>
+
+                        {{ hostel.location }}
+
+                    </p>
+
+                    <p>
+
+                        <i class="fa-solid fa-money-bill-wave"></i>
+
+                        GH₵ {{ hostel.price }}
+
+                    </p>
+
+                    <p>
+
+                        <i class="fa-solid fa-bed"></i>
+
+                        {{ hostel.rooms_available }} Rooms
+
+                    </p>
+
+                    <p>
+
+                        <i class="fa-solid fa-users"></i>
+
+                        {{ hostel.gender }}
+
+                    </p>
+
+                </div>
+
+                <div class="owner-actions">
+
+                    <a
+                    class="btn"
+
+                    href="{{ url_for('hostel.hostel_details', hostel_id=hostel.id) }}">
+
+                        <i class="fa-solid fa-eye"></i>
+
+                        View
+
+                    </a>
+
+                    <a
+                    class="btn btn-warning"
+
+                    href="{{ url_for('hostel.edit_hostel', hostel_id=hostel.id) }}">
+
+                        <i class="fa-solid fa-pen"></i>
+
+                        Edit
+
+                    </a>
+
+                    <a
+                    class="btn btn-danger"
+
+                    href="{{ url_for('hostel.delete_hostel', hostel_id=hostel.id) }}"
+
+                    onclick="return confirm('Delete this hostel permanently?')">
+
+                        <i class="fa-solid fa-trash"></i>
+
+                        Delete
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="fa-solid fa-building-circle-xmark"></i>
+
+        <h2>No Hostels Yet</h2>
+
+        <p>
+
+            Start by publishing your first hostel.
+
+        </p>
+
+        <a class="btn"
+
+           href="{{ url_for('hostel.add_hostel') }}">
+
+            Add Hostel
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

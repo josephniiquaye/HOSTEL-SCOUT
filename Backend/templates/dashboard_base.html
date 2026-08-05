@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+
+        {% block title %}{% endblock %}
+
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+  <link rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}">
+
+  <link rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}">        
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- ===================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================== -->
+
+    <aside class="sidebar">
+
+        <div>
+
+            <div class="sidebar-logo">
+
+                <i class="fa-solid fa-building"></i>
+
+                <div>
+
+                    <h2>HOSTEL SCOUT</h2>
+
+                    <small>Accommodation Platform</small>
+
+                </div>
+
+            </div>
+
+            <div class="sidebar-user">
+
+                <div class="avatar">
+
+                    {% if current_user and current_user.profile_image %}
+                          <img
+                              src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) }}"
+                              class="avatar-img"
+                              alt="Profile">
+                        {% else %}
+
+                          {{ session.get("fullname", "U")[0]|upper }}
+                        {% endif %}
+
+                </div>
+
+                <div>
+
+                    <h3>
+
+                        {{ session.get("fullname") }}
+
+                    </h3>
+
+                    <span>
+
+                        <i class="fa-solid fa-circle online-dot"></i>
+
+                        Online
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <!-- Dashboard -->
+
+                <li>
+
+                    {% if session.get("role") == "student" %}
+
+                    <a href="{{ url_for('student_dashboard') }}">
+
+                        <i class="fa-solid fa-house"></i>
+
+                        Dashboard
+
+                    </a>
+
+                    {% elif session.get("role") == "owner" %}
+
+                    <a href="{{ url_for('owner_dashboard') }}">
+
+                        <i class="fa-solid fa-house"></i>
+
+                        Dashboard
+
+                    </a>
+
+                    {% elif session.get("role") == "admin" %}
+
+                    <a href="{{ url_for('admin_dashboard') }}">
+
+                        <i class="fa-solid fa-house"></i>
+
+                        Dashboard
+
+                    </a>
+
+                    {% endif %}
+
+                </li>
+
+                {% if session.get("role") == "owner" %}
+
+                <li>
+
+                    <a href="{{ url_for('hostel.add_hostel') }}">
+
+                        <i class="fa-solid fa-square-plus"></i>
+
+                        Add Hostel
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="{{ url_for('hostel.my_hostels') }}">
+
+                        <i class="fa-solid fa-building-user"></i>
+
+                        My Hostels
+
+                    </a>
+
+                </li>
+
+                {% endif %}
+
+                <li>
+
+                    <a href="{{ url_for('booking.my_bookings') }}">
+
+                        <i class="fa-solid fa-calendar-check"></i>
+
+                        My Bookings
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="{{ url_for('favorite.my_favorites') }}">
+
+                        <i class="fa-solid fa-heart"></i>
+
+                        Saved Hostels
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="{{ url_for('notification.notifications') }}">
+
+                        <i class="fa-solid fa-bell"></i>
+
+                        Notifications
+
+                        {% if unread_notifications > 0 %}
+
+                        <span class="badge">
+
+                            {{ unread_notifications }}
+
+                        </span>
+
+                        {% endif %}
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="{{ url_for('auth.profile') }}">
+
+                        <i class="fa-solid fa-user"></i>
+
+                        Profile
+
+                    </a>
+
+                </li>
+                 <!-- SETTINGS -->
+
+                <li>
+
+                    <a href="{{ url_for('auth.settings') }}">
+
+                        <i class="fa-solid fa-gear"></i>
+
+                        Settings
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <!-- LOGOUT -->
+
+        <div class="sidebar-footer">
+
+            <a class="logout-btn"
+
+               href="{{ url_for('auth.logout') }}">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- ========================= -->
+
+    <!-- MAIN CONTENT -->
+
+    <!-- ========================= -->
+
+    <div class="main-panel">
+
+        <!-- TOP NAVIGATION -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button class="menu-toggle">
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+                <div>
+
+                    <h2>
+
+                        {% block page_title %}
+
+                        Dashboard
+
+                        {% endblock %}
+
+                    </h2>
+
+                    <small>
+
+                        Welcome back,
+
+                        {{ session.get("fullname") }}
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- SEARCH -->
+
+                <div class="search-box">
+
+                    <i class="fa-solid fa-search"></i>
+
+                    <input
+
+                        type="text"
+
+                        placeholder="Search hostels..."
+
+                    >
+
+                </div>
+
+                <!-- NOTIFICATIONS -->
+
+                <a
+
+                    class="notification-btn"
+
+                    href="{{ url_for('notification.notifications') }}">
+
+                    <i class="fa-solid fa-bell"></i>
+
+                    {% if unread_notifications > 0 %}
+
+                    <span class="notification-count">
+
+                        {{ unread_notifications }}
+
+                    </span>
+
+                    {% endif %}
+
+                </a>
+
+                <!-- USER -->
+
+                <div class="top-user">
+
+                    <div class="top-avatar">
+
+                        {% if current_user and current_user.profile_image %}
+
+                             <img
+                              src="{{ url_for('static', filename='uploads/' ~ current_user.profile_image) }}"
+                              alt="Profile Photo"
+                              class="avatar-img">
+
+                          {% else %}
+
+                               {{ session.get("fullname", "U")[0]|upper }}
+
+                           {% endif %}
+                    </div>
+
+                    <div>
+
+                        <strong>
+
+                            {{ session.get("fullname") }}
+
+                        </strong>
+
+                        <small>
+
+                            {{ session.get("role")|capitalize }}
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- FLASH MESSAGES -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+        {% for category, message in messages %}
+
+        <div class="flash {{ category }}">
+
+            {{ message }}
+
+        </div>
+
+        {% endfor %}
+
+        {% endif %}
+
+        {% endwith %}
+
+        <!-- PAGE CONTENT -->
+
+        <main class="dashboard-content">
+
+            {% block content %}
+
+            {% endblock %}        
+            <!-- END PAGE CONTENT -->
+
+        </main>
+
+        <!-- DASHBOARD FOOTER -->
+
+        <footer class="dashboard-footer">
+
+            <p>
+
+                © {{ 2026 }} HOSTEL SCOUT
+
+                |
+
+                Smart Student Accommodation Platform
+
+            </p>
+
+        </footer>
+
+    </div>
+
+</div>
+
+<!-- ========================= -->
+
+<!-- MOBILE OVERLAY -->
+
+<!-- ========================= -->
+
+<div class="sidebar-overlay"></div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const sidebar = document.querySelector(".sidebar");
+
+    const menuBtn = document.querySelector(".menu-toggle");
+
+    const overlay = document.querySelector(".sidebar-overlay");
+
+    if(menuBtn){
+
+        menuBtn.addEventListener("click", function(){
+
+            sidebar.classList.toggle("show-sidebar");
+
+            overlay.classList.toggle("show-overlay");
+
+        });
+
+    }
+
+    if(overlay){
+
+        overlay.addEventListener("click", function(){
+
+            sidebar.classList.remove("show-sidebar");
+
+            overlay.classList.remove("show-overlay");
+
+        });
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>

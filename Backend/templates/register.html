@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}
+HOSTEL SCOUT | Register
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+
+    <div class="auth-container">
+
+        <!-- LEFT PANEL -->
+
+        <div class="auth-left">
+
+            <h1>HOSTEL SCOUT</h1>
+
+            <h2>Create Your Account</h2>
+
+            <p>
+
+                Join thousands of students finding verified accommodation
+                quickly and securely with HOSTEL SCOUT.
+
+            </p>
+
+            <div class="auth-features">
+
+                <div><i class="fa-solid fa-circle-check"></i> Browse Verified Hostels</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Compare Prices</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Book Online Securely</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Receive Notifications</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Manage Bookings Easily</div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+
+        <div class="auth-card">
+
+            <h2>Create Account</h2>
+
+            <p>
+
+                Fill in your information below.
+
+            </p>
+
+            <form method="POST" autocomplete="off">
+
+                <div class="form-row">
+
+                    <div class="input-group">
+
+                        <label>Full Name</label>
+
+                        <input
+                            class="auth-input"
+                            type="text"
+                            name="fullname"
+                            placeholder="John Doe"
+                            required>
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>Phone Number</label>
+
+                        <input
+                            class="auth-input"
+                            type="text"
+                            name="phone"
+                            placeholder="+233..."
+                            required>
+
+                    </div>
+
+                </div>
+
+                <div class="input-group floating">
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder=" "
+                        required>
+
+                    <label>Email Address</label>
+
+                </div>
+
+                <div class="form-row">
+
+                    <div class="input-group">
+
+                        <label>Password</label>
+
+                        <div class="password-box">
+
+                            <input
+                                id="password"
+                                class="auth-input"
+                                type="password"
+                                name="password"
+                                placeholder="Create Password"
+                                required>
+
+                            <span
+                                class="toggle-password"
+                                onclick="togglePassword('password',this)">
+
+                                <i class="fa-solid fa-eye"></i>
+
+                            </span>
+
+                        </div>
+
+                        <div id="strength-bar">
+
+                            <div id="strength-fill"></div>
+
+                        </div>
+
+                        <small id="strength-text"></small>
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>Confirm Password</label>
+
+                        <div class="password-box">
+
+                            <input
+                                id="confirm_password"
+                                class="auth-input"
+                                type="password"
+                                name="confirm_password"
+                                placeholder="Confirm Password"
+                                required>
+
+                            <span
+                                class="toggle-password"
+                                onclick="togglePassword('confirm_password',this)">
+
+                                <i class="fa-solid fa-eye"></i>
+
+                            </span>
+
+                        </div>
+
+                        <small id="password-match"></small>
+
+                    </div>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Account Type</label>
+
+                    <select
+                        class="auth-input"
+                        name="role"
+                        required>
+
+                        <option value="">
+                            Choose Account Type
+                        </option>
+
+                        <option value="student">
+                            Student
+                        </option>
+
+                        <option value="owner">
+                            Hostel Owner
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <button
+                    type="submit"
+                    id="register-btn"
+                    class="auth-btn"
+                    disabled>
+
+                    Create Account
+                    <i class="fa-solid fa-user-plus"></i>
+
+                </button>
+
+            </form>
+
+            <div class="register-link">
+
+                Already have an account?
+
+                <a href="{{ url_for('auth.login') }}">
+
+                    Login Here
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+{% endblock %}

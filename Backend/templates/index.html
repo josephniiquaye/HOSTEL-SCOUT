@@ -10,83 +10,325 @@ HOSTEL SCOUT | Home
 
     <div class="hero-content">
 
-        <h1>
-            Find Your Perfect Hostel Before You Arrive
-        </h1>
+        <h1>Find Your Perfect Student Hostel</h1>
 
         <p>
-            Search, Compare and Book Student Accommodation Online.
+            Discover verified student accommodation, compare prices,
+            read genuine reviews and book your hostel with confidence
+            through HOSTEL SCOUT.
         </p>
 
-        <div class="search-box">
+        <form method="GET" action="{{ url_for('home') }}" class="search-form">
 
-            <input
-                type="text"
-                placeholder="Enter Location">
+          <input
+             type="text"
+             name="search"
+             placeholder="Search hostel..."
+             value="{{ request.args.get('search','') }}">
 
-            <select>
+           <input
+              type="text"
+              name="location"
+              placeholder="Location"
+              value="{{ request.args.get('location','') }}">
 
-                <option>Room Type</option>
-                <option>Single Room</option>
-                <option>Double Room</option>
-                <option>Self Contained</option>
+          <select name="gender">
+              <option value="">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Mixed">Mixed</option>
+           </select>
 
-            </select>
+           <input
+              type="number"
+              name="price"
+              placeholder="Maximum Price">
 
-            <button>
-                Search
-            </button>
+          <select name="rating">
+              <option value="">Any Rating</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars & Up</option>
+              <option value="3">3 Stars & Up</option>
+          </select>
 
-        </div>
+          <label>
+             <input
+                 type="checkbox"
+                 name="available"
+                 value="1">
+                 Available Only
+          </label>
+
+          <select name="sort">
+               <option value="">Newest</option>
+               <option value="low">Lowest Price</option>
+               <option value="high">Highest Price</option>
+               <option value="rating">Highest Rating</option>
+          </select>
+
+          <button type="submit">
+               Search
+          </button>
+
+        </form>
 
     </div>
 
 </section>
+
+
+
 
 <section class="featured">
 
-    <h2>Featured Hostels</h2>
+    <div class="container">
 
-    <div class="hostel-grid">
+        <h2>Featured Student Accommodation</h2>
 
-        <div class="card">
+        <p>
+            Browse verified hostels with affordable pricing,
+            secure booking and trusted student reviews.
 
-            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+            <br><br>
 
-            <h3>Royal Hostel</h3>
+            <strong>{{ hostels|length }}</strong>
+            accommodation(s) currently available.
+        </p>
 
-            <p>₵1,500 / Semester</p>
+        <div class="hostel-grid">
 
-            <button>View Details</button>
+            {% for hostel in hostels %}
 
-        </div>
+            <div class="hostel-card">
 
-        <div class="card">
+                <div class="gallery">
 
-            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+                    {% if hostel.images %}
 
-            <h3>Campus View</h3>
+                        {% for image in hostel.images %}
 
-            <p>₵1,800 / Semester</p>
+                        <img
+                            class="gallery-image {% if loop.first %}active{% endif %}"
+                            src="{{ url_for('static', filename='uploads/' + image.image) }}"
+                            alt="{{ hostel.name }}">
 
-            <button>View Details</button>
+                        {% endfor %}
 
-        </div>
+                        {% if hostel.images|length > 1 %}
 
-        <div class="card">
+                        <button class="gallery-prev">&#10094;</button>
 
-            <img src="{{ url_for('static', filename='images/hero.jpg') }}" alt="Hostel">
+                        <button class="gallery-next">&#10095;</button>
 
-            <h3>Victory Hostel</h3>
+                        <div class="gallery-counter">
+                            <span class="current">1</span> /
+                            {{ hostel.images|length }}
+                        </div>
 
-            <p>₵2,000 / Semester</p>
+                        {% endif %}
 
-            <button>View Details</button>
+                    {% elif hostel.image %}
+
+                        <img
+                            class="gallery-image active"
+                            src="{{ url_for('static', filename='uploads/' + hostel.image) }}"
+                            alt="{{ hostel.name }}">
+
+                    {% else %}
+
+                        <img
+                            class="gallery-image active"
+                            src="{{ url_for('static', filename='images/default-hostel.jpg') }}"
+                            alt="No Image">
+
+                    {% endif %}
+
+                </div>
+
+                <div class="price-tag">
+
+                    GH₵ {{ hostel.price }}
+
+                </div>
+
+                <div class="card-body">
+
+                    <h2>{{ hostel.name }}</h2>
+
+                    <div class="hostel-info">
+
+                        <span>📍 {{ hostel.location }}</span>
+
+                        <span>{{ hostel.gender }}</span>
+
+                    </div>
+
+                    <div class="rating">
+
+                        {% if hostel.review_count > 0 %}
+
+                            ⭐ {{ "%.1f"|format(hostel.average_rating) }}
+
+                            ({{ hostel.review_count }}
+
+                            {% if hostel.review_count == 1 %}
+                                Review
+                            {% else %}
+                                Reviews
+                            {% endif %})
+
+                        {% else %}
+
+                            ⭐ No Reviews Yet
+
+                        {% endif %}
+
+                    </div>
+
+                    <p>
+
+                        🛏 <strong>{{ hostel.rooms_available }}</strong>
+
+                        Room(s) Available
+
+                    </p>
+
+                    <div class="card-buttons">
+
+                        <a href="{{ url_for('hostel.hostel_details', hostel_id=hostel.id) }}">
+
+                            <i class="fa-solid fa-eye"></i>
+
+                            View Details
+
+                        </a>
+
+                        {% if hostel.occupancies and hostel.occupancies|length > 0 %}
+                        <a href="{{ url_for('booking.book_hostel', hostel_id=hostel.id,occupancy_id=hostel.occupancies[0].id) }}">
+
+                            <i class="fa-solid fa-calendar-check"></i>
+
+                            Book Now
+
+                        </a>
+                        {% else %}
+                            <button class="disabled-book-btn" disabled>
+                                 <i class="fa-solid fa-ban"></i>
+                                   No Rooms Available
+                            </button>
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% else %}
+
+            <div class="no-results">
+
+                <i class="fa-solid fa-house-circle-xmark"
+                   style="font-size:70px;color:#2563eb;"></i>
+
+                <h3>No Hostel Found</h3>
+
+                <p>
+                    We couldn't find any hostel matching your search criteria.
+                    <br>
+                    Try changing your filters or searching another location.
+                </p>
+
+                <br>
+
+                <a class="btn"
+                   href="{{ url_for('home') }}">
+                    View All Hostels
+                </a>
+
+            </div>
+
+            {% endfor %}
 
         </div>
 
     </div>
 
 </section>
+
+<script>
+
+document.querySelectorAll(".gallery").forEach(gallery => {
+
+    const images = gallery.querySelectorAll(".gallery-image");
+
+    if(images.length <= 1) return;
+
+    const nextBtn = gallery.querySelector(".gallery-next");
+    const prevBtn = gallery.querySelector(".gallery-prev");
+    const counter = gallery.querySelector(".current");
+
+    let current = 0;
+
+    function showImage(index){
+
+        images.forEach(img => img.classList.remove("active"));
+
+        images[index].classList.add("active");
+
+        counter.textContent = index + 1;
+
+    }
+
+    nextBtn.addEventListener("click", function(e){
+
+        e.preventDefault();
+
+        current++;
+
+        if(current >= images.length){
+
+            current = 0;
+
+        }
+
+        showImage(current);
+
+    });
+
+    prevBtn.addEventListener("click", function(e){
+
+        e.preventDefault();
+
+        current--;
+
+        if(current < 0){
+
+            current = images.length - 1;
+
+        }
+
+        showImage(current);
+
+    });
+
+    setInterval(function(){
+
+        current++;
+
+        if(current >= images.length){
+
+            current = 0;
+
+        }
+
+        showImage(current);
+
+    },4000);
+
+});
+
+</script>
 
 {% endblock %}

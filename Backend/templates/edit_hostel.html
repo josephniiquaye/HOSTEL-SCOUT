@@ -1,0 +1,241 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Edit Hostel
+{% endblock %}
+
+{% block page_title %}
+Edit Hostel
+{% endblock %}
+
+{% block content %}
+
+<div class="add-hostel-page">
+
+    <div class="page-header">
+
+        <div>
+
+            <h1>
+
+                <i class="fa-solid fa-pen-to-square"></i>
+
+                Edit Hostel
+
+            </h1>
+
+            <p>
+
+                Update your hostel information.
+
+            </p>
+
+        </div>
+
+        <a
+        class="btn btn-secondary"
+
+        href="{{ url_for('hostel.my_hostels') }}">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back
+
+        </a>
+
+    </div>
+
+    <form
+        class="hostel-form"
+        method="POST"
+        enctype="multipart/form-data">
+
+        <!-- LEFT -->
+
+        <div class="form-section">
+
+            <div class="form-card">
+
+                <h3>
+
+                    Hostel Information
+
+                </h3>
+
+                <div class="input-group">
+
+                    <label>Hostel Name</label>
+
+                    <input
+                    type="text"
+                    name="name"
+                    value="{{ hostel.name }}"
+                    required>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Location</label>
+
+                    <input
+                    type="text"
+                    name="location"
+                    value="{{ hostel.location }}"
+                    required>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Description</label>
+
+                    <textarea
+                    rows="8"
+                    name="description"
+                    required>{{ hostel.description }}</textarea>
+
+                </div>
+
+                <div class="input-group">
+                    <label>Google Maps Link</label>
+                    <input
+                        type="url"
+                        name="map_link"
+                        class="auth-input"
+                        placeholder="https://google.com/...">
+                        
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+
+        <div class="form-section">
+
+            <div class="form-card">
+
+                <h3>Pricing</h3>
+
+                <div class="price-box">
+
+                    <span>GH₵</span>
+
+                    <input
+                    type="number"
+                    name="price"
+                    value="{{ hostel.price }}"
+                    required>
+
+                </div>
+
+            </div>
+
+            <div class="form-card">
+
+                <h3>Rooms Available</h3>
+
+                <input
+                type="number"
+                name="rooms_available"
+                value="{{ hostel.rooms_available }}"
+                required>
+
+            </div>
+
+            <div class="form-card">
+
+                <h3>Hostel Type</h3>
+
+                <select
+                name="gender">
+
+                    <option value="Male"
+                    {% if hostel.gender=="Male" %}selected{% endif %}>
+                    Male
+                    </option>
+
+                    <option value="Female"
+                    {% if hostel.gender=="Female" %}selected{% endif %}>
+                    Female
+                    </option>
+
+                    <option value="Mixed"
+                    {% if hostel.gender=="Mixed" %}selected{% endif %}>
+                    Mixed
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-card">
+
+                <h3>Current Image</h3>
+
+                {% if hostel.image %}
+
+                <img
+                id="preview-image"
+                class="preview-image"
+
+                src="{{ url_for('static', filename='uploads/' ~ hostel.image) }}">
+
+                {% else %}
+
+                <img
+                id="preview-image"
+                class="preview-image"
+
+                src="{{ url_for('static', filename='images/default-hostel.jpg') }}">
+
+                {% endif %}
+
+                <br><br>
+
+                <input
+                id="image"
+                type="file"
+                name="image"
+                accept="image/*">
+
+            </div>
+
+            <button
+            class="btn save-hostel-btn">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Save Changes
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+const image=document.getElementById("image");
+
+const preview=document.getElementById("preview-image");
+
+image.onchange=function(e){
+
+const file=e.target.files[0];
+
+if(file){
+
+preview.src=URL.createObjectURL(file);
+
+}
+
+}
+
+</script>
+
+{% endblock %}

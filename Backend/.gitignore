@@ -1,0 +1,18 @@
+# Environment
+.env
+Backend/.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+Backend/venv/
+
+# Flask uploads
+Backend/static/uploads/
+
+# Instance folder
+instance/
+Backend/instance/

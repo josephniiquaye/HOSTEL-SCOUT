@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ hostel.name }}
+{% endblock %}
+
+{% block content %}
+
+<!-- ========================================================= -->
+<!--                HOSTEL DETAILS PAGE                        -->
+<!-- ========================================================= -->
+
+<div class="details-container">
+
+    <!-- ===================================================== -->
+    <!-- HERO IMAGE GALLERY                                    -->
+    <!-- ===================================================== -->
+
+    <div class="details-gallery">
+
+        {% if hostel.images %}
+
+            {% for image in hostel.images %}
+
+            <img
+                class="gallery-image {% if loop.first %}active{% endif %}"
+                src="{{ url_for('static', filename='uploads/' + image.image) }}"
+                alt="{{ hostel.name }}">
+
+            {% endfor %}
+
+        {% elif hostel.image %}
+
+            <img
+                class="gallery-image active"
+                src="{{ url_for('static', filename='uploads/' + hostel.image) }}"
+                alt="{{ hostel.name }}">
+
+        {% else %}
+
+            <img
+                class="gallery-image active"
+                src="{{ url_for('static', filename='images/default-hostel.jpg') }}"
+                alt="Default Hostel">
+
+        {% endif %}
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- HOSTEL HEADER                                         -->
+    <!-- ===================================================== -->
+
+    <div class="details-header">
+
+        <div>
+
+            <h1>{{ hostel.name }}</h1>
+
+            <p>
+
+                ⭐ {{ "%.1f"|format(hostel.average_rating) }}
+
+                ({{ hostel.review_count }}
+
+                {% if hostel.review_count == 1 %}
+                    Review
+                {% else %}
+                    Reviews
+                {% endif %})
+
+            </p>
+
+            <p>
+
+                {{ hostel.location }}
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- MAIN CONTENT                                           -->
+    <!-- ===================================================== -->
+
+    <div class="details-layout">
+
+        <!-- ================================================= -->
+        <!-- LEFT CONTENT                                      -->
+        <!-- ================================================= -->
+
+        <div class="details-left">
+
+            <!-- Description -->
+
+            <section class="details-card">
+
+                <h2>Description</h2>
+
+                <p>
+
+                    {{ hostel.description }}
+
+                </p>
+
+            </section>
+
+            <!-- Hostel Information -->
+
+            <section class="details-card">
+
+                <h2>Hostel Information</h2>
+
+                <div class="info-grid">
+
+                    <div>
+
+                        <strong>Price</strong>
+
+                        <p>GH₵ {{ hostel.price }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <strong>Hostel Type</strong>
+
+                        <p>{{ hostel.gender }}</p>
+
+                    </div>
+
+                    <div>
+
+                        <strong>Rooms Available</strong>
+
+                        <p>{{ hostel.rooms_available }}</p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Hostel Facilities -->
+
+            <section class="details-card">
+
+                <h2>
+
+                    <i class="fa-solid fa-list-check"></i>
+
+                    Hostel Facilities
+
+                </h2>
+
+                {% if hostel.facilities %}
+
+                <div class="facility-grid">
+
+                    {% for facility in hostel.facilities.split(",") %}
+
+                    <div class="facility-item">
+
+                        <span>{{ facility }}</span>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                {% else %}
+
+                    <p>No facilities have been added.</p>
+
+                {% endif %}
+
+            </section>
+
+            <!-- Google Maps -->
+
+            {% if hostel.map_link %}
+
+            <section class="details-card">
+
+                <h2>
+
+                    <i class="fa-solid fa-map-location-dot"></i>
+
+                    Google Maps Location
+
+                </h2>
+
+                <a
+                    href="{{ hostel.map_link }}"
+                    target="_blank"
+                    class="btn">
+
+                    Open Google Maps
+
+                </a>
+
+            </section>
+
+            {% endif %}
+
+            <!-- Student Reviews -->
+
+            <section class="details-card">
+
+                <h2>
+
+                    <i class="fa-solid fa-star"></i>
+
+                    Student Reviews
+
+                </h2>
+
+                {% if reviews %}
+
+                    {% for review in reviews %}
+
+                    <div class="review-card">
+
+                        <strong>
+
+                            {% for i in range(review.rating) %}
+
+                                ★
+
+                            {% endfor %}
+
+                        </strong>
+
+                        {% if review.comment %}
+
+                        <p>
+
+                            {{ review.comment }}
+
+                        </p>
+
+                        {% endif %}
+
+                        <small>
+
+                            {{ review.student.full_name }}
+
+                        </small>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <p>No reviews yet.</p>
+
+                {% endif %}
+
+            </section>
+
+        </div>
+
+       <!-- ========================= -->
+<!-- RIGHT BOOKING PANEL -->
+<!-- ========================= -->
+
+<div class="booking-card">
+
+    <h2>Available Occupancies</h2>
+
+    {% if hostel.occupancies %}
+
+    <table class="occupancy-booking-table">
+
+        <thead>
+
+            <tr>
+
+                <th>Occupancy</th>
+                <th>Price</th>
+                <th>Available</th>
+                <th></th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for occupancy in hostel.occupancies %}
+
+            <tr>
+
+                <td>{{ occupancy.occupancy }}</td>
+
+                <td>
+                    GH₵ {{ "%.2f"|format(occupancy.price) }}
+                </td>
+
+                <td>
+
+                    {% if occupancy.rooms_available > 0 %}
+
+                        {{ occupancy.rooms_available }}
+
+                    {% else %}
+
+                        <span class="text-danger">
+                            Full
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if occupancy.rooms_available > 0 %}
+
+                    <a
+                        class="book-btn"
+                        href="{{ url_for(
+                            'booking.book_hostel',
+                            hostel_id=hostel.id,
+                            occupancy_id=occupancy.id
+                        ) }}">
+
+                        Book
+
+                    </a>
+
+                    {% else %}
+
+                    <button
+                        class="btn"
+                        disabled>
+
+                        Full
+
+                    </button>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <p>No occupancy information has been added.</p>
+
+    {% endif %}
+
+    <hr>
+
+    <a
+        class="favorite-btn"
+        href="{{ url_for('favorite.add_favorite', hostel_id=hostel.id) }}">
+
+        Add to Favorites
+
+    </a>
+
+    <a
+        class="review-btn"
+        href="{{ url_for('review.add_review', hostel_id=hostel.id) }}">
+
+        Write Review
+
+    </a>
+
+</div>
+{% endblock %}

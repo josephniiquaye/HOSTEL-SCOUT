@@ -1,0 +1,328 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Student Dashboard
+{% endblock %}
+
+{% block page_title %}
+Student Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+
+    <div>
+
+        <h1>
+
+            👋 Welcome,
+
+            {{ session.get("fullname") }}
+
+        </h1>
+
+        <p>
+
+            Discover verified hostels, manage your bookings and
+            find accommodation that matches your budget.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ========================= -->
+
+<!-- DASHBOARD STATISTICS -->
+
+<!-- ========================= -->
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+
+            Available Hostels
+
+        </h3>
+
+        <h1>
+
+            {{ hostels|length }}
+
+        </h1>
+
+        <p>
+
+            Hostels currently listed.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            My Bookings
+
+        </h3>
+
+        <h1>
+
+            --
+
+        </h1>
+
+        <p>
+
+            Your hostel reservations.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            Saved Hostels
+
+        </h3>
+
+        <h1>
+
+            --
+
+        </h1>
+
+        <p>
+
+            Favourite accommodations.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            Notifications
+
+        </h3>
+
+        <h1>
+
+            {{ unread_notifications }}
+
+        </h1>
+
+        <p>
+
+            Unread notifications.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ========================= -->
+
+<!-- QUICK ACTIONS -->
+
+<!-- ========================= -->
+
+<div class="dashboard-actions">
+
+    <a class="btn"
+
+       href="{{ url_for('home') }}">
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        Browse Hostels
+
+    </a>
+
+    <a class="btn btn-secondary"
+
+       href="{{ url_for('booking.my_bookings') }}">
+
+        <i class="fa-solid fa-calendar-check"></i>
+
+        My Bookings
+
+    </a>
+
+    <a class="btn"
+
+       href="#">
+
+        <i class="fa-solid fa-user"></i>
+
+        My Profile
+
+    </a>
+
+</div>
+
+<!-- ========================= -->
+
+<!-- AVAILABLE HOSTELS -->
+
+<!-- ========================= -->
+
+<h2 style="margin-top:45px;">
+
+    Recommended Hostels
+
+</h2>
+
+<div class="hostel-grid">
+
+{% for hostel in hostels %}
+
+<div class="hostel-card">
+
+    {% if hostel.image %}
+
+    <img
+        src="{{ url_for('static', filename='uploads/' ~ hostel.image) }}"
+        alt="{{ hostel.name }}">
+
+    {% else %}
+
+    <img
+        src="{{ url_for('static', filename='images/default-hostel.jpg') }}"
+        alt="No Hostel Image">
+
+    {% endif %}
+
+    <div class="card-body">
+
+        <h3>
+
+            {{ hostel.name }}
+
+        </h3>
+
+        <div class="rating">
+
+            {% if hostel.review_count > 0 %}
+
+                ⭐ {{ "%.1f"|format(hostel.average_rating) }}
+
+                ({{ hostel.review_count }}
+
+                {% if hostel.review_count == 1 %}
+                Review
+                {% else %}
+                Reviews
+                {% endif %})
+
+            {% else %}
+
+                ⭐ No Reviews Yet
+
+            {% endif %}
+
+        </div>
+
+        <p>
+
+            <i class="fa-solid fa-location-dot"></i>
+
+            {{ hostel.location }}
+
+        </p>
+
+        <p>
+
+            <i class="fa-solid fa-money-bill-wave"></i>
+
+            GH₵ {{ hostel.price }}
+
+        </p>
+
+        <p>
+
+            <i class="fa-solid fa-bed"></i>
+
+            {{ hostel.rooms_available }} Room(s)
+
+        </p>
+
+        <p>
+
+            <i class="fa-solid fa-user-group"></i>
+
+            {{ hostel.gender }}
+
+        </p>
+
+        <div class="hostel-actions">
+
+             <a class="btn"
+                   href="{{ url_for('hostel.hostel_details', hostel_id=hostel.id) }}">
+                   View Details
+            </a>
+
+            <a class="btn favorite-btn"
+                href="{{ url_for('favorite.add_favorite', hostel_id=hostel.id) }}">
+
+            <i class="fa-solid fa-heart"></i>
+
+                Save
+
+            </a>
+
+         </div>
+                
+
+    </div>
+
+</div>
+
+{% else %}
+
+<div class="no-results">
+
+    <img
+        src="{{ url_for('static', filename='images/empty.png') }}"
+        alt="No Hostels"
+        style="width:220px; margin-bottom:20px;">
+
+    <h2>
+
+        No Hostels Available
+
+    </h2>
+
+    <p>
+
+        There are currently no hostels matching your search.
+
+    </p>
+
+    <br>
+
+    <a class="btn"
+
+       href="{{ url_for('home') }}">
+
+        Browse Again
+
+    </a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

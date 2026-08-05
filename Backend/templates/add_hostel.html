@@ -1,0 +1,420 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Add Hostel
+{% endblock %}
+
+{% block page_title %}
+Add New Hostel
+{% endblock %}
+
+{% block content %}
+
+<div class="add-hostel-page">
+
+    <!-- Page Header -->
+    <div class="page-header">
+
+        <h1>
+            <i class="fa-solid fa-building-circle-check"></i>
+            Add New Hostel
+        </h1>
+
+        <p>
+            Complete the information below to publish your hostel.
+        </p>
+
+    </div>
+
+    <form
+        class="hostel-form"
+        method="POST"
+        enctype="multipart/form-data">
+
+        <!-- ================= LEFT SIDE ================= -->
+
+        <div class="form-section">
+
+            <!-- Basic Hostel Information -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-circle-info"></i>
+                    Hostel Information
+                </h3>
+
+                <div class="input-group">
+
+                    <label>Hostel Name</label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="e.g. Royal Hostel"
+                        required>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Location</label>
+
+                    <input
+                        type="text"
+                        name="location"
+                        placeholder="e.g. Ayeduase"
+                        required>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Description</label>
+
+                    <textarea
+                        name="description"
+                        rows="7"
+                        placeholder="Describe your hostel..."
+                        required></textarea>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Google Maps Link</label>
+
+                    <input
+                        type="url"
+                        name="map_link"
+                        placeholder="https://maps.google.com/...">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= RIGHT SIDE ================= -->
+
+        <div class="form-section">
+
+            <!-- Default Price -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-wallet"></i>
+                    Default Price
+                </h3>
+
+                <div class="price-box">
+
+                    <span>GH₵</span>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="price"
+                        placeholder="Default Price"
+                        required>
+
+                </div>
+
+            </div>
+
+            <!-- Total Rooms -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-bed"></i>
+                    Rooms Available
+                </h3>
+
+                <input
+                    type="number"
+                    name="rooms_available"
+                    placeholder="Total Rooms Available"
+                    required>
+
+            </div>
+
+            <!-- Occupancy Pricing -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-users"></i>
+                    Occupancy & Pricing
+                </h3>
+
+                <p>
+                    Add the available occupancy types for this hostel.
+                </p>
+
+                 <table class="occupancy-table">
+                    
+                        <thead>
+
+                           <tr>
+
+                                <th>Occupancy</th>
+                                <th>Price (GH₵)</th>
+                                <th>Available Spaces</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+                            <tr>
+
+                                 <td>1 in a Room</td>
+
+                                <td>
+
+                                    <input
+                                       type="number"
+                                        step="0.01"
+                                        name="single_price"
+                                         placeholder="0.00">
+
+                                </td>
+
+                                <td>
+
+                                  <input
+                                    type="number"
+                                     name="single_rooms"
+                                     value="0"
+                                     min="0">
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td>2 in a Room</td>
+
+                                <td>
+
+                                   <input
+                                      type="number"
+                                       step="0.01"
+                                       name="double_price"
+                                       placeholder="0.00">
+
+                                </td>
+
+                                <td>
+
+                                    <input
+                                      type="number"
+                                      name="double_rooms"
+                                       value="0"
+                                        min="0">
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td>3 in a Room</td>
+
+                                <td>
+
+                                 <input
+                                   type="number"
+                                   step="0.01"
+                                   name="triple_price"
+                                   placeholder="0.00">
+
+                               </td>
+
+                               <td>
+
+                                   <input
+                                      type="number"
+                                      name="triple_rooms"
+                                      value="0"
+                                      min="0">
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                              <td>4 in a Room</td>
+
+                               <td>
+
+                                    <input
+                                       type="number"
+                                       step="0.01"
+                                        name="quad_price"
+                                        placeholder="0.00">
+
+                                </td>
+
+                                <td>
+
+                                     <input
+                                      type="number"
+                                       name="quad_rooms"
+                                       value="0"
+                                        min="0">
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- Hostel Type -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-users"></i>
+                    Hostel Type
+                </h3>
+
+                <select name="gender" required>
+
+                    <option value="">Select Hostel Type</option>
+
+                    <option value="Male">Male Hostel</option>
+
+                    <option value="Female">Female Hostel</option>
+
+                    <option value="Mixed">Mixed Hostel</option>
+
+                </select>
+
+            </div>
+
+            <!-- Cover Image -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-image"></i>
+                    Cover Image
+                </h3>
+
+                <div class="upload-box">
+
+                    <img
+                        id="preview-image"
+                        src="{{ url_for('static', filename='images/default-hostel.jpg') }}"
+                        alt="Preview">
+
+                    <input
+                        id="image"
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        required>
+
+                </div>
+
+                <hr style="margin:25px 0;">
+
+                <h3>
+                    <i class="fa-solid fa-images"></i>
+                    Gallery Images
+                </h3>
+
+                <p>
+
+                    Upload additional pictures.
+
+                </p>
+
+                <input
+                    type="file"
+                    name="gallery"
+                    accept="image/*"
+                    multiple>
+
+            </div>
+
+            <!-- Hostel Facilities -->
+            <div class="form-card">
+
+                <h3>
+                    <i class="fa-solid fa-list-check"></i>
+                    Hostel Facilities
+                </h3>
+
+                <div class="facility-checkboxes">
+
+                    <label><input type="checkbox" name="facilities" value="WiFi"> Free WiFi</label>
+
+                    <label><input type="checkbox" name="facilities" value="Electricity"> Electricity</label>
+
+                    <label><input type="checkbox" name="facilities" value="Water"> Water</label>
+
+                    <label><input type="checkbox" name="facilities" value="Security"> Security</label>
+
+                    <label><input type="checkbox" name="facilities" value="Parking"> Parking</label>
+
+                    <label><input type="checkbox" name="facilities" value="Laundry"> Laundry</label>
+
+                    <label><input type="checkbox" name="facilities" value="Kitchen"> Kitchen</label>
+
+                    <label><input type="checkbox" name="facilities" value="Generator"> Generator</label>
+
+                    <label><input type="checkbox" name="facilities" value="Study Room"> Study Room</label>
+
+                    <label><input type="checkbox" name="facilities" value="Wardrobe"> Wardrobe</label>
+
+                    <label><input type="checkbox" name="facilities" value="Air Conditioning"> Air Conditioning</label>
+
+                    <label><input type="checkbox" name="facilities" value="CCTV"> CCTV</label>
+
+                </div>
+
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn save-hostel-btn">
+
+                <i class="fa-solid fa-circle-plus"></i>
+
+                Publish Hostel
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+// Preview selected cover image
+
+const imageInput = document.getElementById("image");
+const preview = document.getElementById("preview-image");
+
+imageInput.addEventListener("change", function(){
+
+    const file = this.files[0];
+
+    if(file){
+
+        preview.src = URL.createObjectURL(file);
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

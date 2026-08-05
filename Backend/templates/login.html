@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}
+HOSTEL SCOUT | Login
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+
+    <div class="auth-container">
+
+        <!-- LEFT PANEL -->
+
+        <div class="auth-left">
+
+            <h1>HOSTEL SCOUT</h1>
+
+            <h2>Welcome Back!</h2>
+
+            <p>
+
+                Login to continue searching verified hostels,
+                manage your bookings and access your personal dashboard.
+
+            </p>
+
+            <div class="auth-features">
+
+                <div><i class="fa-solid fa-circle-check"></i> Verified Student Hostels</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Safe & Secure Booking</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Instant Notifications</div>
+
+                <div><i class="fa-solid fa-circle-check"></i> Personal Dashboard</div>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+
+        <div class="auth-card">
+
+            <h2>Login</h2>
+
+            <p>
+
+                Sign into your HOSTEL SCOUT account.
+
+            </p>
+
+            <form method="POST">
+
+                <div class="input-group floating">
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder=" "
+                        required>
+
+                    <label>Email Address</label>
+
+                </div>
+
+                <div class="input-group floating">
+
+                    <div class="password-box">
+
+                        <input
+                            id="login_password"
+                            type="password"
+                            name="password"
+                            placeholder=" "
+                            required>
+
+                        <label>Password</label>
+
+                        <span
+                            class="toggle-password"
+                            onclick="togglePassword('login_password',this)">
+
+                            <i class="fa-solid fa-eye"></i>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="auth-links">
+
+                    <a href="{{ url_for('auth.forgot_password') }}">
+
+                        Forgot Password?
+
+                    </a>
+
+                    <p>
+                        <a href="{{ url_for('auth.resend_verification') }}">
+
+                            Didn't receive the verification email?
+
+                        </a>
+                    </p>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="auth-btn">
+
+                    Login
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </button>
+
+            </form>
+
+            <div class="register-link">
+
+                Don't have an account?
+
+                <a href="{{ url_for('auth.register') }}">
+
+                    Register Here
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

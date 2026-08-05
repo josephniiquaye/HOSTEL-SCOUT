@@ -1,0 +1,144 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Booking Requests{% endblock %}
+
+{% block page_title %}Booking Requests{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div>
+        <h1>Booking Requests</h1>
+        <p>
+            Review, approve or reject booking requests submitted by students.
+        </p>
+    </div>
+</div>
+
+{% if bookings %}
+
+<div class="chart-card">
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Hostel</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th width="220">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for booking in bookings %}
+
+        <tr>
+
+            <td>
+                {{ booking.student.fullname }}
+            </td>
+
+            <td>
+                {{ booking.hostel.name }}
+            </td>
+
+            <td>
+                {{ booking.created_at.strftime("%d %b %Y") }}
+            </td>
+
+            <td>
+
+                {% if booking.status == "Pending" %}
+
+                    <span class="badge">
+                        Pending
+                    </span>
+
+                {% elif booking.status == "Approved" %}
+
+                    <span class="badge success">
+                        Approved
+                    </span>
+
+                {% else %}
+
+                    <span class="badge danger">
+                        Rejected
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                {% if booking.status == "Pending" %}
+
+                    <a
+                        class="btn"
+                        href="{{ url_for('booking.approve_booking', booking_id=booking.id) }}"
+                        onclick="return confirm('Approve this booking?');">
+
+                        <i class="fa-solid fa-check"></i>
+                        Approve
+
+                    </a>
+
+                    <a
+                        class="btn btn-danger"
+                        href="{{ url_for('booking.reject_booking', booking_id=booking.id) }}"
+                        onclick="return confirm('Reject this booking?');">
+
+                        <i class="fa-solid fa-xmark"></i>
+                        Reject
+
+                    </a>
+
+                {% elif booking.status == "Approved" %}
+
+                    <span style="color:green;font-weight:600;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Approved
+                    </span>
+
+                {% else %}
+
+                    <span style="color:#dc2626;font-weight:600;">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        Rejected
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% else %}
+
+<div class="empty-state">
+
+    <i class="fa-solid fa-calendar-xmark fa-4x"></i>
+
+    <h2>No Booking Requests</h2>
+
+    <p>
+        Students have not submitted any booking requests yet.
+    </p>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,1075 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Admin Dashboard
+{% endblock %}
+
+{% block page_title %}
+Administrator Dashboard
+{% endblock %}
+
+{% block content %}
+
+<!-- ====================================== -->
+<!-- DASHBOARD HEADER -->
+<!-- ====================================== -->
+
+<div class="dashboard-header">
+
+    <div>
+
+        <h1>
+
+            👨‍💼 Welcome Administrator
+
+        </h1>
+
+        <p>
+
+            Monitor users, hostels, bookings and overall system performance from one central dashboard.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- SYSTEM KPI CARDS -->
+<!-- ====================================== -->
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+
+            👥 Total Users
+
+        </h3>
+
+        <h1>
+
+            {{ total_users }}
+
+        </h1>
+
+        <p>
+
+            Registered platform users.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            🎓 Students
+
+        </h3>
+
+        <h1>
+
+            {{ students }}
+
+        </h1>
+
+        <p>
+
+            Student accounts.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            🏠 Hostel Owners
+
+        </h3>
+
+        <h1>
+
+            {{ owners }}
+
+        </h1>
+
+        <p>
+
+            Registered hostel managers.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            🛡 Administrators
+
+        </h3>
+
+        <h1>
+
+            {{ admins }}
+
+        </h1>
+
+        <p>
+
+            Platform administrators.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            🏨 Hostels
+
+        </h3>
+
+        <h1>
+
+            {{ total_hostels }}
+
+        </h1>
+
+        <p>
+
+            Active hostel listings.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            📅 Bookings
+
+        </h3>
+
+        <h1>
+
+            {{ total_bookings }}
+
+        </h1>
+
+        <p>
+
+            Booking requests.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            ⭐ Reviews
+
+        </h3>
+
+        <h1>
+
+            {{ total_reviews }}
+
+        </h1>
+
+        <p>
+
+            Student reviews.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            ⏳ Pending
+
+        </h3>
+
+        <h1>
+
+            {{ pending_bookings }}
+
+        </h1>
+
+        <p>
+
+            Awaiting approval.
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<hr style="margin:50px 0;">
+
+<h2>Pending Hostel Approvals</h2>
+
+{% if pending_hostels %}
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+
+            <th>Hostel</th>
+
+            <th>Location</th>
+
+            <th>Owner</th>
+
+            <th>Status</th>
+
+            <th>Actions</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for hostel in pending_hostels %}
+
+        <tr>
+
+            <td>{{ hostel.name }}</td>
+
+            <td>{{ hostel.location }}</td>
+
+            <td>{{ hostel.owner.fullname }}</td>
+
+            <td>
+
+                <span class="badge bg-warning">
+                    Pending
+                </span>
+
+            </td>
+
+            <td class="action-buttons">
+
+               <a href="{{ url_for('hostel.approve_hostel', hostel_id=hostel.id) }}"
+                  class="approve-btn">
+                   ✓ Approve
+               </a>
+
+               <a href="{{ url_for('hostel.reject_hostel', hostel_id=hostel.id) }}"
+                 class="reject-btn">
+                 ✕ Reject
+               </a>
+
+</td>
+
+             
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>No pending hostels.</p>
+
+{% endif %}
+
+
+<!-- ====================================== -->
+<!-- QUICK ACTIONS -->
+<!-- ====================================== -->
+
+<div class="dashboard-actions">
+
+    <a class="btn"
+
+       href="#">
+
+        <i class="fa-solid fa-users"></i>
+
+        Manage Users
+
+    </a>
+
+    <a class="btn btn-secondary"
+
+       href="{{ url_for('home') }}">
+
+        <i class="fa-solid fa-building"></i>
+
+        View Hostels
+
+    </a>
+
+    <a class="btn"
+
+       href="{{ url_for('pdf.generate_report') }}">
+
+        <i class="fa-solid fa-file-pdf"></i>
+
+        Generate Report
+
+    </a>
+
+</div>
+
+<!-- ====================================== -->
+<!-- ANNOUNCEMENT MANAGEMENT -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:45px;">
+    📢 Announcement Management
+</h2>
+
+<div class="chart-card">
+
+    <form method="POST"
+          action="{{ url_for('add_announcement') }}">
+
+        <div class="input-group">
+
+            <label>Announcement Title</label>
+
+            <input
+                type="text"
+                name="title"
+                class="auth-input"
+                placeholder="Example: New Hostel Registration"
+                required>
+
+        </div>
+
+        <div class="input-group" style="margin-top:20px;">
+
+            <label>Announcement Message</label>
+
+            <textarea
+                name="message"
+                rows="5"
+                class="auth-input"
+                placeholder="Write announcement..."
+                required></textarea>
+
+        </div>
+
+        <button
+            type="submit"
+            class="btn"
+            style="margin-top:20px;">
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            Publish Announcement
+
+        </button>
+
+    </form>
+
+</div>
+
+<!-- ====================================== -->
+<!-- ANNOUNCEMENTS -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:35px;">
+    📋 Published Announcements
+</h2>
+
+{% if announcements %}
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+
+            <th>Title</th>
+
+            <th>Message</th>
+
+            <th>Date</th>
+
+            <th>Action</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for announcement in announcements %}
+
+        <tr>
+
+            <td>
+
+                {{ announcement.title }}
+
+            </td>
+
+            <td>
+
+                {{ announcement.message }}
+
+            </td>
+
+            <td>
+
+                {{ announcement.created_at.strftime('%d %b %Y') }}
+
+            </td>
+
+            <td>
+
+                <a
+                    href="{{ url_for('delete_announcement', id=announcement.id) }}"
+                    class="btn btn-danger"
+                    onclick="return confirm('Delete announcement?')">
+
+                    Delete
+
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>No announcements have been published.</p>
+
+{% endif %}
+
+<!-- ====================================== -->
+<!-- SYSTEM ANALYTICS -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:45px;">
+
+    📊 System Analytics
+
+</h2>
+
+<div class="charts">
+
+        <!-- ====================================== -->
+    <!-- BOOKINGS CHART -->
+    <!-- ====================================== -->
+
+    <div class="chart-card">
+
+        <h2>
+
+            Booking Status
+
+        </h2>
+
+        <canvas id="bookingChart"></canvas>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- USERS CHART -->
+    <!-- ====================================== -->
+
+    <div class="chart-card">
+
+        <h2>
+
+            User Distribution
+
+        </h2>
+
+        <canvas id="userChart"></canvas>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- EXECUTIVE SUMMARY -->
+<!-- ====================================== -->
+
+<!-- ====================================== -->
+<!-- TOP RATED HOSTELS -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:45px;">
+
+    ⭐ Top Rated Hostels
+
+</h2>
+
+<div class="chart-card">
+
+    <canvas id="ratingChart"></canvas>
+
+</div>
+
+<h2 style="margin-top:45px;">
+
+     Executive Summary
+
+</h2>
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+
+             Approved Bookings
+
+        </h3>
+
+        <h1>
+
+            {{ approved_bookings }}
+
+        </h1>
+
+        <p>
+
+            Successfully approved bookings.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+             Rejected Bookings
+
+        </h3>
+
+        <h1>
+
+            {{ rejected_bookings }}
+
+        </h1>
+
+        <p>
+
+            Rejected booking requests.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+             Hostel Listings
+
+        </h3>
+
+        <h1>
+
+            {{ total_hostels }}
+
+        </h1>
+
+        <p>
+
+            Currently published hostels.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+            ⭐ Reviews
+
+        </h3>
+
+        <h1>
+
+            {{ total_reviews }}
+
+        </h1>
+
+        <p>
+
+            Reviews submitted by students.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- PLATFORM HEALTH -->
+<!-- ====================================== -->
+
+<div class="chart-card" style="margin-top:35px;">
+
+    <h2>
+
+         Platform Health
+
+    </h2>
+
+    <table class="table">
+
+        <tr>
+
+            <th>Metric</th>
+
+            <th>Status</th>
+
+        </tr>
+
+        <tr>
+
+            <td>Total Registered Users</td>
+
+            <td>
+
+                {{ total_users }}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>Hostel Listings</td>
+
+            <td>
+
+                {{ total_hostels }}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>Booking Requests</td>
+
+            <td>
+
+                {{ total_bookings }}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>Pending Approvals</td>
+
+            <td>
+
+                <span class="badge">
+
+                    {{ pending_bookings }}
+
+                </span>
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>Student Reviews</td>
+
+            <td>
+
+                {{ total_reviews }}
+
+            </td>
+
+        </tr>
+
+    </table>
+
+</div>
+
+<!-- ====================================== -->
+<!-- REGISTERED USERS -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:45px;">
+
+    👥 Registered Users
+
+</h2>
+
+<table class="table">
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+
+            <th>Full Name</th>
+
+            <th>Email</th>
+
+            <th>Role</th>
+
+            <th>Action</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+{% for user in users %}
+
+<tr>
+
+    <td>
+
+        {{ user.id }}
+
+    </td>
+
+    <td>
+
+        {{ user.fullname }}
+
+    </td>
+
+    <td>
+
+        {{ user.email }}
+
+    </td>
+
+    <td>
+
+        {% if user.role == "admin" %}
+
+            <span class="badge">
+
+                Administrator
+
+            </span>
+
+        {% elif user.role == "owner" %}
+
+            <span class="badge">
+
+                Owner
+
+            </span>
+
+        {% else %}
+
+            <span class="badge">
+
+                Student
+
+            </span>
+
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        {% if user.role != "admin" %}
+
+        <a
+
+            class="btn btn-danger"
+
+            href="{{ url_for('delete_user', user_id=user.id) }}"
+
+            onclick="return confirm('Delete this account permanently?')">
+
+            <i class="fa-solid fa-trash"></i>
+
+            Delete
+
+        </a>
+
+        {% else %}
+
+            <strong>
+
+                Protected
+
+            </strong>
+
+        {% endif %}
+
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<!-- ====================================== -->
+<!-- CHART.JS -->
+<!-- ====================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+// ======================================
+// BOOKING STATUS (BAR CHART)
+// ======================================
+
+new Chart(
+    document.getElementById("bookingChart"),
+    {
+        type: "bar",
+
+        data: {
+            labels: [
+                "Pending",
+                "Approved",
+                "Rejected"
+            ],
+
+            datasets: [{
+                label: "Bookings",
+                data: [
+                    {{ pending_bookings }},
+                    {{ approved_bookings }},
+                    {{ rejected_bookings }}
+                ],
+                backgroundColor: [
+                    "#f59e0b",
+                    "#16a34a",
+                    "#dc2626"
+                ],
+                borderRadius: 10
+            }]
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+                        stepSize: 1
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+
+// ======================================
+// USER DISTRIBUTION (HORIZONTAL BAR)
+// ======================================
+
+new Chart(
+    document.getElementById("userChart"),
+    {
+        type: "bar",
+
+        data: {
+
+            labels: [
+                "Students",
+                "Owners",
+                "Admins"
+            ],
+
+            datasets: [{
+
+                label: "Users",
+
+                data: [
+                    {{ students }},
+                    {{ owners }},
+                    {{ admins }}
+                ],
+
+                backgroundColor: [
+                    "#2563eb",
+                    "#10b981",
+                    "#7c3aed"
+                ],
+
+                borderRadius: 10
+
+            }]
+
+        },
+
+        options: {
+
+            indexAxis: "y",
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    display: false
+                }
+
+            },
+
+            scales: {
+
+                x: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+                        stepSize: 1
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+
+// ======================================
+// TOP RATED HOSTELS
+// ======================================
+
+new Chart(
+
+document.getElementById("ratingChart"),
+
+{
+
+type:"bar",
+
+data:{
+
+labels:[
+
+{% for name in hostel_names %}
+
+"{{ name }}",
+
+{% endfor %}
+
+],
+
+datasets:[{
+
+label:"Average Rating",
+
+data:[
+
+{% for rating in hostel_ratings %}
+
+{{ rating }},
+
+{% endfor %}
+
+],
+
+backgroundColor:"#2563eb",
+
+borderRadius:8
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false,
+
+plugins:{
+
+legend:{
+
+display:false
+
+}
+
+},
+
+scales:{
+
+y:{
+
+beginAtZero:true,
+
+max:5
+
+}
+
+}
+
+}
+
+}
+
+);
+
+</script>
+
+{% endblock %}

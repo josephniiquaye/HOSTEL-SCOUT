@@ -1,0 +1,456 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}
+Owner Dashboard
+{% endblock %}
+
+{% block page_title %}
+Owner Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+
+    <div>
+
+        <h1>
+
+              Welcome back,
+
+            {{ session.fullname }}
+
+        </h1>
+
+        <p>
+
+            Manage your hostels, monitor bookings and grow your business with HOSTEL SCOUT.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- OWNER KPI CARDS -->
+<!-- ====================================== -->
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+
+              My Hostels
+
+        </h3>
+
+        <h1>
+
+            {{ hostel_count }}
+
+        </h1>
+
+        <p>
+
+            Registered hostels.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+              Total Rooms
+
+        </h3>
+
+        <h1>
+
+            {{ total_rooms }}
+
+        </h1>
+
+        <p>
+
+            Available accommodation.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+             Total Bookings
+
+        </h3>
+
+        <h1>
+
+            {{ booking_count }}
+
+        </h1>
+
+        <p>
+
+            Booking requests received.
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+              Pending
+
+        </h3>
+
+        <h1>
+
+            {{ pending_bookings }}
+
+        </h1>
+
+        <p>
+
+            Waiting for approval.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- QUICK ACTIONS -->
+<!-- ====================================== -->
+
+<div class="dashboard-actions">
+
+    <a class="btn"
+
+       href="{{ url_for('hostel.add_hostel') }}">
+
+        <i class="fa-solid fa-plus"></i>
+
+        Add Hostel
+
+    </a>
+
+    <a class="btn btn-secondary"
+
+       href="{{ url_for('hostel.my_hostels') }}">
+
+        <i class="fa-solid fa-building"></i>
+
+        Manage Hostels
+
+    </a>
+
+    <a class="btn"
+
+       href="{{ url_for('booking.owner_bookings') }}">
+
+        <i class="fa-solid fa-calendar-check"></i>
+
+        Booking Requests
+
+    </a>
+
+</div>
+
+
+<!-- BUSINESS OVERVIEW -->
+
+
+<div class="charts">
+
+    <div class="chart-card">
+
+        <h2>
+
+            Business Overview
+
+        </h2>
+
+        <table class="table">
+
+            <tr>
+
+                <th>Metric</th>
+
+                <th>Value</th>
+
+            </tr>
+
+            <tr>
+
+                <td>Total Hostels</td>
+
+                <td>{{ hostel_count }}</td>
+
+            </tr>
+
+            <tr>
+
+                <td>Total Rooms</td>
+
+                <td>{{ total_rooms }}</td>
+
+            </tr>
+
+            <tr>
+
+                <td>Total Bookings</td>
+
+                <td>{{ booking_count }}</td>
+
+            </tr>
+
+            <tr>
+
+                <td>Pending Bookings</td>
+
+                <td>
+
+                    <span class="badge">
+
+                        {{ pending_bookings }}
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- PERFORMANCE INSIGHTS -->
+    <!-- ====================================== -->
+
+    <div class="chart-card">
+
+        <h2>
+
+            Performance Insights
+
+        </h2>
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>
+
+                    Occupancy
+
+                </h3>
+
+                <h1>
+
+                    {% if total_rooms > 0 %}
+                    {{ ((booking_count / total_rooms) * 100)|round(0) }}%
+                    {% else %}
+                    0%
+                    {% endif %}
+
+                </h1>
+
+                <p>
+
+                    Estimated room occupancy.
+
+                </p>
+
+            </div>
+
+            <div class="card">
+
+                <h3>
+
+                    Pending Requests
+
+                </h3>
+
+                <h1>
+
+                    {{ pending_bookings }}
+
+                </h1>
+
+                <p>
+
+                    Awaiting your approval.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <br>
+
+        <p style="color:#64748b;line-height:1.8;">
+
+            Keep your hostel information updated, upload quality
+            photographs and respond quickly to booking requests to
+            increase your visibility on HOSTEL SCOUT.
+
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- OWNER TOOLS -->
+<!-- ====================================== -->
+
+<h2 style="margin-top:45px;">
+
+    Owner Tools
+
+</h2>
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>
+
+              Manage Properties
+
+        </h3>
+
+        <p>
+
+            Edit hostel information, pricing, room availability and
+            images.
+
+        </p>
+
+        <br>
+
+        <a class="btn"
+
+           href="{{ url_for('hostel.my_hostels') }}">
+
+            Open
+
+        </a>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+              Booking Management
+
+        </h3>
+
+        <p>
+
+            Approve or reject booking requests submitted by students.
+
+        </p>
+
+        <br>
+
+        <a class="btn"
+
+           href="{{ url_for('booking.owner_bookings') }}">
+
+            View
+
+        </a>
+
+    </div>
+
+    <div class="card">
+
+        <h3>
+
+             Add New Hostel
+
+        </h3>
+
+        <p>
+
+            Increase your visibility by listing another hostel.
+
+        </p>
+
+        <br>
+
+        <a class="btn"
+
+           href="{{ url_for('hostel.add_hostel') }}">
+
+            Add Hostel
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- OWNER TIPS -->
+<!-- ====================================== -->
+
+<div class="chart-card" style="margin-top:35px;">
+
+    <h2>
+
+         Tips for Better Visibility
+
+    </h2>
+
+    <ul style="margin-top:20px;line-height:2;color:#475569;">
+
+        <li>
+
+            Upload clear, high-quality hostel images.
+
+        </li>
+
+        <li>
+
+            Keep room availability updated regularly.
+
+        </li>
+
+        <li>
+
+            Respond quickly to booking requests.
+
+        </li>
+
+        <li>
+
+            Encourage students to leave reviews.
+
+        </li>
+
+        <li>
+
+            Maintain accurate pricing information.
+
+        </li>
+
+    </ul>
+
+</div>
+
+{% endblock %}
