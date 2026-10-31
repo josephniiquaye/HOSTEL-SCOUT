@@ -1,19 +1,38 @@
 # HOSTEL-SCOUT
 
-HOSTEL-SCOUT is a Flask-based hostel booking and management web application designed to help students find suitable accommodation and help hostel owners/admins manage their listings and bookings.
+HOSTEL-SCOUT is a Flask-based hostel booking and management web application designed to help students discover suitable accommodation and help hostel owners manage listings, bookings, and property operations more efficiently.
 
-The project includes a public marketplace for approved hostels, user authentication, role-based dashboards, booking workflows, notifications, reviews, and admin moderation.
+The project combines search, filtering, booking flows, notifications, reviews, and admin moderation into a single campus accommodation platform. It supports three distinct user types: students, hostel owners, and administrators.
 
-## Overview
+## Project purpose
 
-This repository contains a complete web app for:
+This application is intended to simplify hostel discovery and management by giving students an easy way to compare and book accommodation, while allowing owners to list and manage their hostels from one dashboard.
 
-- Students searching for hostels
-- Hostel owners listing and managing their properties
-- Admins approving listings, monitoring users, and publishing announcements
-- Email-based account verification and password reset workflows
+## Main features
 
-## Tech Stack
+### Student features
+- Browse a homepage of approved hostels
+- Search and filter hostels by name, location, gender, price, and availability
+- View detailed hostel information and gallery images
+- Save hostels to favorites
+- Book accommodations and track booking status
+- Leave reviews and ratings
+- Receive notifications and platform announcements
+
+### Owner features
+- Create and manage hostel listings
+- Update availability and pricing information
+- View incoming booking requests
+- Manage their own dashboard metrics and hostel portfolio
+
+### Admin features
+- Review and approve pending hostel submissions
+- Manage users and roles
+- Review bookings and platform activity
+- Publish announcements to all users
+- View summary statistics for the platform
+
+## Tech stack
 
 - Python
 - Flask
@@ -21,82 +40,60 @@ This repository contains a complete web app for:
 - Flask-Migrate (Alembic)
 - Flask-Mail
 - Jinja2 templates
-- HTML, CSS, JavaScript
-- PostgreSQL/MySQL-compatible database via SQLAlchemy connection string
+- HTML, CSS, and JavaScript
+- SQLite/PostgreSQL-compatible database via SQLAlchemy
 
-## Project Structure
+## Repository structure
 
 ```text
 HOSTEL-SCOUT/
 ├── Backend/
 │   ├── app.py                  # Main Flask application entry point
-│   ├── config.py               # App configuration and environment settings
-│   ├── extensions.py           # Flask extensions registration
+│   ├── config.py               # Configuration and environment variables
+│   ├── extensions.py           # Flask extension setup
 │   ├── requirements.txt        # Python dependencies
 │   ├── runtime.txt             # Deployment runtime version
-│   ├── Procfile                # Heroku-style process configuration
-│   ├── models/                 # Database models
-│   │   ├── user.py
-│   │   ├── hostel.py
+│   ├── Procfile                # Hosting process definition
+│   ├── models/                 # SQLAlchemy models
+│   │   ├── announcement.py
 │   │   ├── booking.py
-│   │   ├── review.py
 │   │   ├── favorite.py
+│   │   ├── hostel.py
+│   │   ├── hostel_image.py
 │   │   ├── notification.py
 │   │   ├── occupancy.py
-│   │   ├── announcement.py
-│   │   └── hostel_image.py
-│   ├── routes/                 # Route blueprints for app features
-│   │   ├── auth.py
-│   │   ├── hostel.py
-│   │   ├── booking.py
 │   │   ├── review.py
+│   │   └── user.py
+│   ├── routes/                 # Flask blueprints for app features
+│   │   ├── auth.py
+│   │   ├── booking.py
 │   │   ├── favorite.py
+│   │   ├── hostel.py
 │   │   ├── notification.py
-│   │   └── pdf.py
-│   ├── migrations/             # Alembic migration files
-│   ├── static/                 # CSS, JS, images, uploads
-│   ├── templates/              # Jinja templates for frontend pages
-│   └── uploads/                # Uploaded hostel media storage
-└── README.md
+│   │   ├── pdf.py
+│   │   └── review.py
+│   ├── migrations/             # Alembic database migration scripts
+│   ├── static/                 # CSS, JS, images, and uploads
+│   ├── templates/              # HTML templates for pages and dashboards
+│   └── uploads/                # Uploaded media directory
+├── README.md
+├── .gitignore
+└── .env.example (if present in the app template folder)
 ```
 
-## Core Features
+## App roles
 
-### For Students
-- Browse hostels on the homepage
-- Search and filter by location, gender, price, availability, and rating
-- View hostel details and photos
-- Add hostels to favorites
-- Book available rooms
-- Leave reviews and ratings
-- Track notifications and announcements
-
-### For Owners
-- Add and manage hostel listings
-- Update hostel details and availability
-- View bookings received for their properties
-- Monitor website activity from a dashboard
-
-### For Admins
-- Review pending hostel submissions
-- Approve or reject hostel listings
-- Manage users and bookings
-- Publish announcements to all users
-- Monitor app statistics and dashboard data
-
-## App Roles
-
-The application supports three main user roles:
+The application explicitly supports these roles:
 
 - Student
 - Owner
 - Admin
 
-Role-based access is enforced in several routes and dashboard views.
+Access is role-aware in several dashboard and management routes, which prevents unauthorized users from viewing privileged pages.
 
-## Environment Variables
+## Environment variables
 
-Create a `.env` file in the `Backend` directory and define values like:
+Create a `.env` file inside the `Backend` directory with values like:
 
 ```env
 SECRET_KEY=your_secret_key
@@ -109,14 +106,14 @@ MAIL_PASSWORD=your_email_password
 MAIL_DEFAULT_SENDER=your_email@example.com
 ```
 
-Notes:
+### Notes
 - The app loads environment variables using `python-dotenv`.
-- If `DATABASE_URL` is not set, the app may not connect to a database properly.
-- For Gmail, you may need an app password depending on your account security settings.
+- `DATABASE_URL` is essential for connecting to the database.
+- For Gmail-based email sending, an app password may be required depending on account security settings.
 
 ## Installation
 
-From the project root:
+From the repository root:
 
 ```bash
 cd Backend
@@ -125,28 +122,28 @@ source venv/bin/activate   # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Running the Application
+## Running the application
 
-From the `Backend` folder:
+From the `Backend` directory:
 
 ```bash
 python app.py
 ```
 
-The app will start in debug mode by default.
+The app runs in debug mode by default for local development.
 
-Optional alternative:
+Alternative:
 
 ```bash
 export FLASK_APP=app.py
 flask run
 ```
 
-## Database Setup
+## Database setup
 
-This project includes Alembic migrations under `Backend/migrations/`.
+The project includes Alembic migrations under `Backend/migrations/`.
 
-To initialize or apply migrations:
+To initialize and apply migrations:
 
 ```bash
 cd Backend
@@ -155,38 +152,43 @@ flask db migrate -m "Initial migration"
 flask db upgrade
 ```
 
-If migrations are already prepared in the project, you may only need to run:
+If migration files already exist, you may only need:
 
 ```bash
 flask db upgrade
 ```
 
-## Notes
+## Deployment notes
 
-- The app’s homepage filters and searches hostels by several criteria.
-- There is an email verification flow using a signed token.
-- The project includes PDF-related functionality under `routes/pdf.py`.
-- The app appears to be designed for deployment on a hosting platform such as Heroku, as shown by `Procfile` and `runtime.txt`.
+The presence of `Procfile` and `runtime.txt` suggests this application was designed for deployment on a platform like Heroku or another cloud-based PaaS. For production use, environment variables and the database configuration should be reviewed carefully.
 
-## Future Improvements
+## Notable implementation details
 
-Possible enhancements for this project include:
+- The homepage supports hostel filtering and sorting.
+- The system includes email verification using token-based signing.
+- Notifications are generated when admin announcements are created.
+- The app includes PDF-related routes in `routes/pdf.py`.
+- Front-end pages and assets are separated into `templates/` and `static/`.
 
-- Better API documentation
+## Possible improvements
+
+This project could be enhanced with:
+
+- API documentation and endpoints reference
 - Payment integration for bookings
-- More detailed owner analytics
-- Mobile responsiveness improvements
-- Deployment setup for production environments
-- Automated tests
+- More advanced dashboard analytics
+- Improved mobile responsiveness
+- Automated testing
+- Production deployment configuration and CI setup
 
 ## License
 
-No explicit license file was found in the repository, so the project should be treated as unlicensed unless otherwise stated by the owner.
+No explicit license file was found in this repository, so it should be treated as unlicensed unless the owner specifies otherwise.
 
 ## Maintainer
 
-This project appears to be maintained by the repository owner under the GitHub account `josephniiquaye`.
+This project appears to be maintained by the repository owner, `josephniiquaye`.
 
 ---
 
-This README was created to help new contributors and users understand the purpose, structure, and setup of the project.
+This README is intended to help contributors and users quickly understand the purpose, architecture, and local setup of the HOSTEL-SCOUT project.
