@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: hostel-scout
+    env: python
+    plan: free
+    buildCommand: "cd Backend && pip install -r requirements.txt"
+    startCommand: "cd Backend && gunicorn app:app"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USE_TLS
+        value: "True"
+      - key: MAIL_USERNAME
+        value: ""
+      - key: MAIL_PASSWORD
+        value: ""
+      - key: MAIL_DEFAULT_SENDER
+        value: ""
