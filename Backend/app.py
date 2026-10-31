@@ -62,7 +62,6 @@ app.register_blueprint(notification)
 app.register_blueprint(pdf)
 
 
-
 @app.route("/")
 def home():
     """Render the homepage with optional filtering and sorting for hostels."""
@@ -74,6 +73,8 @@ def home():
     rating = request.args.get("rating")
     available = request.args.get("available")
     sort = request.args.get("sort")
+    page = request.args.get("page", 1, type=int)
+    per_page = min(max(request.args.get("per_page", 12, type=int), 6), 24)
 
     query = Hostel.query.filter_by(status="Approved")
 
@@ -105,14 +106,17 @@ def home():
             Hostel.rooms_available > 0
         )
 
-    hostels = query.all()
-    
-    featured_hostels = sorted(
-          Hostel.query.filter_by(status="Approved").all(),
-          key=lambda h: h.average_rating,
-          reverse=True
-    )[:4]
+    if sort == "low":
+        query = query.order_by(Hostel.price.asc())
+    elif sort == "high":
+        query = query.order_by(Hostel.price.desc())
+    elif sort == "rating":
+        query = query.order_by(Hostel.created_at.desc())
+    else:
+        query = query.order_by(Hostel.created_at.desc())
 
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    hostels = paginated.items
 
     if rating:
         hostels = [
@@ -121,36 +125,23 @@ def home():
         ]
 
     if sort == "low":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.price
-        )
-
+        hostels = sorted(hostels, key=lambda h: h.price)
     elif sort == "high":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.price,
-            reverse=True
-        )
-
+        hostels = sorted(hostels, key=lambda h: h.price, reverse=True)
     elif sort == "rating":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.average_rating,
-            reverse=True
-        )
-
+        hostels = sorted(hostels, key=lambda h: h.average_rating, reverse=True)
     else:
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.created_at,
-            reverse=True
-        )
+        hostels = sorted(hostels, key=lambda h: h.created_at, reverse=True)
+
+    featured_hostels = Hostel.query.filter_by(status="Approved").order_by(
+        Hostel.created_at.desc()
+    ).limit(4).all()
 
     return render_template(
         "index.html",
         hostels=hostels,
-        featured_hostels=featured_hostels
+        featured_hostels=featured_hostels,
+        pagination=paginated,
     )
 
 
@@ -237,16 +228,12 @@ def admin_dashboard():
     total_reviews = Review.query.count()
 
     users = User.query.order_by(User.id.desc()).all()
-    
+
     announcements = Announcement.query.order_by(
-    Announcement.created_at.desc()
+        Announcement.created_at.desc()
     ).all()
 
     pending_hostels = Hostel.query.filter_by(status="Pending").all()
-
-    # -----------------------------------
-    # Pending Hostel Approvals
-    # -----------------------------------
 
     approved_hostels = Hostel.query.filter_by(
         status="Approved"
@@ -256,18 +243,13 @@ def admin_dashboard():
         status="Rejected"
     ).count()
 
-    # -----------------------------------
-    # Top Rated Hostels
-    # -----------------------------------
-
     top_hostels = sorted(
-        Hostel.query.all(),
+        Hostel.query.filter_by(status="Approved").all(),
         key=lambda h: h.average_rating,
         reverse=True
     )[:5]
 
     hostel_names = [h.name for h in top_hostels]
-
     hostel_ratings = [h.average_rating for h in top_hostels]
 
     return render_template(
@@ -290,8 +272,8 @@ def admin_dashboard():
         hostel_ratings=hostel_ratings,
         announcements=announcements,
     )
-   
-    
+
+
 @app.route("/admin/announcement/add", methods=["POST"])
 def add_announcement():
 
@@ -311,19 +293,16 @@ def add_announcement():
 
     db.session.add(announcement)
 
-    # Create notifications for every user
     users = User.query.all()
-
-    for user in users:
-
-        notification = Notification(
+    notifications = [
+        Notification(
             user_id=user.id,
             message=f"📢 {title}\n\n{message}",
-            is_read=False
+            is_read=False,
         )
-
-        db.session.add(notification)
-
+        for user in users
+    ]
+    db.session.add_all(notifications)
     db.session.commit()
 
     flash(
@@ -357,6 +336,7 @@ def delete_announcement(id):
 
     return redirect(url_for("admin_dashboard"))
 
+
 @app.route("/admin/delete-user/<int:user_id>")
 def delete_user(user_id):
 
@@ -368,43 +348,30 @@ def delete_user(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    # Prevent deleting yourself
     if user.id == session["user_id"]:
         flash("You cannot delete your own account.", "warning")
         return redirect(url_for("admin_dashboard"))
 
-    # Prevent deleting admins
     if user.role == "admin":
         flash("Admin accounts cannot be deleted.", "danger")
         return redirect(url_for("admin_dashboard"))
 
-    # -------------------------------
-    # Delete student bookings
-    # -------------------------------
     if user.role == "student":
-
         Booking.query.filter_by(
             student_id=user.id
         ).delete()
 
-    # -------------------------------
-    # Delete owner's hostels & bookings
-    # -------------------------------
     elif user.role == "owner":
-
         hostels = Hostel.query.filter_by(
             owner_id=user.id
         ).all()
 
         for h in hostels:
-
             Booking.query.filter_by(
                 hostel_id=h.id
             ).delete()
-
             db.session.delete(h)
 
-    # Delete user
     db.session.delete(user)
 
     db.session.commit()
@@ -412,8 +379,8 @@ def delete_user(user_id):
     flash("User deleted successfully.", "success")
 
     return redirect(url_for("admin_dashboard"))
- 
- 
+
+
 @app.context_processor
 def notification_count():
 
@@ -475,6 +442,7 @@ def verify_email(token):
 
     flash("Email verified successfully.", "success")
     return redirect(url_for("auth.login"))
+
 
 @app.context_processor
 def inject_current_user():
