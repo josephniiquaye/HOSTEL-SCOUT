@@ -1,37 +1,19 @@
-from datetime import datetime
 from extensions import db
 
 
-class Notification(db.Model):
-    __tablename__ = "notifications"
+class Occupancy(db.Model):
+    __tablename__ = "occupancies"
+
+    __table_args__ = (
+        db.Index("ix_occupancies_hostel_rooms", "hostel_id", "rooms_available"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
+    hostel_id = db.Column(db.Integer, db.ForeignKey("hostels.id"), nullable=False)
+    occupancy = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    rooms_available = db.Column(db.Integer, default=0)
 
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=False
-    )
+    hostel = db.relationship("Hostel", back_populates="occupancies")
+    bookings = db.relationship("Booking", back_populates="occupancy")
 
-    message = db.Column(
-        db.String(255),
-        nullable=False
-    )
-
-    is_read = db.Column(
-        db.Boolean,
-        default=False
-    )
-
-    created_at = db.Column(
-        db.DateTime,
-        default=datetime.utcnow
-    )
-
-    user = db.relationship(
-        "User",
-        back_populates="notifications"
-    )
-
-    def __repr__(self):
-        return f"<Notification {self.id}>"

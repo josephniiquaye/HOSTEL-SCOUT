@@ -2,43 +2,35 @@ from datetime import datetime
 from extensions import db
 
 
-class Favorite(db.Model):
-    __tablename__ = "favorites"
+class User(db.Model):
+    __tablename__ = "users"
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True
+    __table_args__ = (
+        db.Index("ix_users_role_created", "role", "created_at"),
+        db.Index("ix_users_email_role", "email", "role"),
     )
 
-    student_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=False
-    )
+    id = db.Column(db.Integer, primary_key=True)
+    fullname = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default="student")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_verified = db.Column(db.Boolean, default=False)
+    profile_image = db.Column(db.String(255), nullable=True)
 
-    hostel_id = db.Column(
-        db.Integer,
-        db.ForeignKey(
-            "hostels.id",
-            ondelete="CASCADE"
-        ),
-        nullable=False
-    )
-
-    created_at = db.Column(
-        db.DateTime,
-        default=datetime.utcnow
-    )
-
-    student = db.relationship(
-        "User",
-        backref=db.backref(
-            "favorites",
-            cascade="all, delete-orphan"
-        )
-    )
-
-    hostel = db.relationship(
+    hostels = db.relationship(
         "Hostel",
-        back_populates="favorites"
+        back_populates="owner",
+        cascade="all, delete-orphan",
     )
+    notifications = db.relationship(
+        "Notification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+

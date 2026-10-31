@@ -2,54 +2,95 @@ from datetime import datetime
 from extensions import db
 
 
-class Booking(db.Model):
-    __tablename__ = "bookings"
+class Hostel(db.Model):
+    __tablename__ = "hostels"
+
+    __table_args__ = (
+        db.Index("ix_hostels_owner_status_created", "owner_id", "status", "created_at"),
+        db.Index("ix_hostels_status_created", "status", "created_at"),
+        db.Index("ix_hostels_gender_location", "gender", "location"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
+    facilities = db.Column(db.Text, nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    location = db.Column(db.String(150), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    single_price = db.Column(db.Float, nullable=True)
+    double_price = db.Column(db.Float, nullable=True)
+    triple_price = db.Column(db.Float, nullable=True)
+    quad_price = db.Column(db.Float, nullable=True)
+    single_rooms = db.Column(db.Integer, default=0)
+    double_rooms = db.Column(db.Integer, default=0)
+    triple_rooms = db.Column(db.Integer, default=0)
+    quad_rooms = db.Column(db.Integer, default=0)
+    gender = db.Column(db.String(20), nullable=False)
+    rooms_available = db.Column(db.Integer, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    map_link = db.Column(db.String(500), nullable=True)
+    image = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="Pending")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    student_id = db.Column(
-        db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=False
+    owner = db.relationship("User", back_populates="hostels")
+    bookings = db.relationship(
+        "Booking",
+        back_populates="hostel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-
-    hostel_id = db.Column(
-        db.Integer,
-        db.ForeignKey("hostels.id"),
-        nullable=False
+    reviews = db.relationship(
+        "Review",
+        back_populates="hostel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-
-    # NEW
-    occupancy_id = db.Column(
-        db.Integer,
-        db.ForeignKey("occupancies.id"),
-        nullable=False
+    images = db.relationship(
+        "HostelImage",
+        back_populates="hostel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-
-    status = db.Column(
-        db.String(20),
-        default="Pending"
+    favorites = db.relationship(
+        "Favorite",
+        back_populates="hostel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-
-    created_at = db.Column(
-        db.DateTime,
-        default=datetime.utcnow
-    )
-
-    student = db.relationship(
-        "User",
-        backref="bookings"
-    )
-
-    hostel = db.relationship(
-        "Hostel",
-        back_populates="bookings"
-    )
-
-    occupancy = db.relationship(
+    occupancies = db.relationship(
         "Occupancy",
-        back_populates="bookings"
+        back_populates="hostel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
+
+    @property
+    def average_rating(self):
+        if not self.reviews:
+            return 0
+        total = sum(review.rating for review in self.reviews)
+        return round(total / len(self.reviews), 1)
+
+    @property
+    def is_full(self):
+        return all(room.rooms_available <= 0 for room in self.occupancies)
+
+    @property
+    def review_count(self):
+        return len(self.reviews)
+
+    @property
+    def facility_list(self):
+        if not self.facilities:
+            return []
+        return self.facilities.split(",")
 
     def __repr__(self):
-        return f"<Booking {self.id}>"
+        return (
+            f"<Hostel "
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"status='{self.status}'>"
+        )
+

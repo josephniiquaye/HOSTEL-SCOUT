@@ -1,313 +1,389 @@
-import os
-
 from flask import (
-    Blueprint,
+    Flask,
     render_template,
-    request,
     redirect,
     url_for,
-    flash,
     session,
-    current_app,
+    request,
+    flash
 )
 
-from sqlalchemy.orm import selectinload
-from werkzeug.utils import secure_filename
 
-from extensions import db
+from sqlalchemy import func, or_  # type: ignore
+from dotenv import load_dotenv
+load_dotenv()
+from config import Config
+from extensions import db, migrate, mail
+
+
 from models.hostel import Hostel
-from models.user import User
-from models.favorite import Favorite
-from models.review import Review
 from models.booking import Booking
-from flask_mail import Message
-from extensions import mail
+from models.user import User
 from models.notification import Notification
+from models.review import Review
+from models.announcement import Announcement
 from models.hostel_image import HostelImage
 from models.occupancy import Occupancy
 
+from routes.auth import auth
+from routes.hostel import hostel
+from routes.booking import booking
+from routes.review import review
+from routes.favorite import favorite
+from routes.notification import notification
+from routes.pdf import pdf
 
-hostel = Blueprint("hostel", __name__)
+from flask_mail import Message
+from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime
 
 
-@hostel.route("/add-hostel", methods=["GET", "POST"])
-def add_hostel():
-    """Add a new hostel listing."""
+app = Flask(__name__)
 
-    if "user_id" not in session:
-        flash("Please login first.", "warning")
-        return redirect(url_for("auth.login"))
+app.config.from_object(Config)
 
-    user = User.query.get(session["user_id"])
+print("Loaded MAIL_SERVER:", app.config.get("MAIL_SERVER"))
+print("Loaded MAIL_PORT:", app.config.get("MAIL_PORT"))
+print("Loaded Config:", Config)
+serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
-    if user.role != "owner":
-        flash("Only hostel owners can add hostels.", "danger")
-        return redirect(url_for("student_dashboard"))
 
-    if request.method == "POST":
-        upload_path = os.path.join(current_app.static_folder, "uploads")
-        os.makedirs(upload_path, exist_ok=True)
+db.init_app(app)
+migrate.init_app(app, db)
+mail.init_app(app)
 
-        facilities = request.form.getlist("facilities")
-        facility_string = ",".join(facilities)
 
-        single_price = request.form.get("single_price")
-        double_price = request.form.get("double_price")
-        triple_price = request.form.get("triple_price")
-        quad_price = request.form.get("quad_price")
+app.register_blueprint(auth)
+app.register_blueprint(hostel)
+app.register_blueprint(booking)
+app.register_blueprint(review)
+app.register_blueprint(favorite)
+app.register_blueprint(notification)
+app.register_blueprint(pdf)
 
-        new_hostel = Hostel(
-            owner_id=session["user_id"],
-            name=request.form["name"],
-            location=request.form["location"],
-            price=float(request.form["price"]),
-            single_price=float(single_price) if single_price else None,
-            double_price=float(double_price) if double_price else None,
-            triple_price=float(triple_price) if triple_price else None,
-            quad_price=float(quad_price) if quad_price else None,
-            gender=request.form["gender"],
-            description=request.form["description"],
-            image=None,
-            map_link=request.form.get("map_link"),
-            facilities=facility_string,
-            rooms_available=(
-                int(request.form.get("single_rooms") or 0) +
-                int(request.form.get("double_rooms") or 0) +
-                int(request.form.get("triple_rooms") or 0) +
-                int(request.form.get("quad_rooms") or 0)
-            ),
+
+@app.route("/")
+def home():
+    """Render the homepage with optional filtering and sorting for hostels."""
+
+    search = request.args.get("search")
+    location = request.args.get("location")
+    gender = request.args.get("gender")
+    max_price = request.args.get("price")
+    rating = request.args.get("rating")
+    available = request.args.get("available")
+    sort = request.args.get("sort")
+    page = request.args.get("page", 1, type=int)
+    per_page = min(max(request.args.get("per_page", 12, type=int), 6), 24)
+
+    query = Hostel.query.filter_by(status="Approved")
+
+    if search:
+        query = query.filter(
+            or_(
+                Hostel.name.ilike(f"%{search}%"),
+                Hostel.location.ilike(f"%{search}%")
+            )
         )
 
-        db.session.add(new_hostel)
-        db.session.flush()
+    if location:
+        query = query.filter(Hostel.location.ilike(f"%{location}%"))
 
-        occupancy_types = [
-            ("Single Room", single_price, request.form.get("single_rooms")),
-            ("Double Room", double_price, request.form.get("double_rooms")),
-            ("Triple Room", triple_price, request.form.get("triple_rooms")),
-            ("Quad Room", quad_price, request.form.get("quad_rooms")),
-        ]
+    if gender:
+        query = query.filter(Hostel.gender == gender)
 
-        occupancies = []
-        for name, price, rooms in occupancy_types:
-            if price and rooms and int(rooms) > 0:
-                occupancies.append(
-                    Occupancy(
-                        hostel_id=new_hostel.id,
-                        occupancy=name,
-                        price=float(price),
-                        rooms_available=int(rooms),
-                    )
-                )
+    if max_price:
+        query = query.filter(Hostel.price <= float(max_price))
 
-        if occupancies:
-            db.session.add_all(occupancies)
+    if available:
+        query = query.filter(Hostel.rooms_available > 0)
 
-        cover = request.files.get("image")
-        if cover and cover.filename:
-            filename = secure_filename(cover.filename)
-            cover.save(os.path.join(upload_path, filename))
-            new_hostel.image = filename
-            db.session.add(HostelImage(hostel_id=new_hostel.id, image=filename))
+    if sort == "low":
+        query = query.order_by(Hostel.price.asc())
+    elif sort == "high":
+        query = query.order_by(Hostel.price.desc())
+    else:
+        query = query.order_by(Hostel.created_at.desc())
 
-        gallery = request.files.getlist("gallery")
-        gallery_images = []
-        for img in gallery:
-            if img and img.filename:
-                gallery_name = secure_filename(img.filename)
-                img.save(os.path.join(upload_path, gallery_name))
-                gallery_images.append(HostelImage(hostel_id=new_hostel.id, image=gallery_name))
+    paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+    hostels = paginated.items
 
-        if gallery_images:
-            db.session.add_all(gallery_images)
+    if rating:
+        hostels = [h for h in hostels if h.average_rating >= float(rating)]
 
-        db.session.commit()
+    if sort == "low":
+        hostels = sorted(hostels, key=lambda h: h.price)
+    elif sort == "high":
+        hostels = sorted(hostels, key=lambda h: h.price, reverse=True)
+    elif sort == "rating":
+        hostels = sorted(hostels, key=lambda h: h.average_rating, reverse=True)
+    else:
+        hostels = sorted(hostels, key=lambda h: h.created_at, reverse=True)
 
-        flash("Hostel published successfully!", "success")
-        return redirect(url_for("hostel.my_hostels"))
-
-    return render_template("add_hostel.html")
-
-
-@hostel.route("/my-hostels")
-def my_hostels():
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-
-    hostels = Hostel.query.options(
-        selectinload(Hostel.images),
-        selectinload(Hostel.reviews),
-        selectinload(Hostel.occupancies),
-    ).filter_by(owner_id=session["user_id"]).all()
-
-    return render_template("my_hostels.html", hostels=hostels)
-
-
-@hostel.route("/hostel/<int:hostel_id>")
-def hostel_details(hostel_id):
-    """Retrieve and display details for a specific hostel including reviews."""
-    hostel_obj = Hostel.query.options(
-        selectinload(Hostel.reviews),
-        selectinload(Hostel.images),
-        selectinload(Hostel.occupancies),
-    ).get_or_404(hostel_id)
-
-    reviews = hostel_obj.reviews
+    featured_hostels = Hostel.query.filter_by(status="Approved").order_by(
+        Hostel.created_at.desc()
+    ).limit(4).all()
 
     return render_template(
-        "hostel_details.html",
-        hostel=hostel_obj,
-        reviews=reviews
+        "index.html",
+        hostels=hostels,
+        featured_hostels=featured_hostels,
+        pagination=paginated,
     )
 
 
-@hostel.route("/edit-hostel/<int:hostel_id>", methods=["GET", "POST"])
-def edit_hostel(hostel_id):
+@app.route("/student-dashboard")
+def student_dashboard():
+    """Student dashboard route displaying all hostels."""
+    hostels = Hostel.query.order_by(Hostel.created_at.desc()).limit(50).all()
+    return render_template("student_dashboard.html", hostels=hostels)
+
+
+@app.route("/owner-dashboard")
+def owner_dashboard():
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
-    hostel = Hostel.query.get_or_404(hostel_id)
+    if session.get("role") != "owner":
+        return redirect(url_for("student_dashboard"))
 
-    if hostel.owner_id != session["user_id"]:
-        flash("Unauthorized.", "danger")
-        return redirect(url_for("hostel.my_hostels"))
+    hostel_count = Hostel.query.filter_by(owner_id=session["user_id"]).count()
 
-    if request.method == "POST":
+    total_rooms = db.session.query(func.sum(Hostel.rooms_available)).filter(
+        Hostel.owner_id == session["user_id"]
+    ).scalar()
 
-        hostel.name = request.form.get("name")
-        hostel.location = request.form.get("location")
-        hostel.gender = request.form.get("gender")
-        hostel.rooms_available = int(request.form.get("rooms_available"))
-        hostel.description = request.form.get("description")
-        hostel.map_link = request.form.get("map_link")
+    if total_rooms is None:
+        total_rooms = 0
 
-        image = request.files.get("image")
+    booking_count = Booking.query.join(Hostel).filter(
+        Hostel.owner_id == session["user_id"]
+    ).count()
 
-        if image and image.filename:
-            filename = secure_filename(image.filename)
-            upload_path = os.path.join(current_app.static_folder, "uploads")
-            os.makedirs(upload_path, exist_ok=True)
-            image.save(os.path.join(upload_path, filename))
-            hostel.image = filename
+    pending_bookings = Booking.query.join(Hostel).filter(
+        Hostel.owner_id == session["user_id"],
+        Booking.status == "Pending"
+    ).count()
 
-        db.session.commit()
-
-        flash("Hostel updated successfully!", "success")
-        return redirect(url_for("hostel.my_hostels"))
-
-    return render_template("edit_hostel.html", hostel=hostel)
+    return render_template(
+        "owner_dashboard.html",
+        hostel_count=hostel_count,
+        total_rooms=total_rooms,
+        booking_count=booking_count,
+        pending_bookings=pending_bookings
+    )
 
 
-@hostel.route("/delete-hostel/<int:hostel_id>")
-def delete_hostel(hostel_id):
-
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-
-    hostel = Hostel.query.get_or_404(hostel_id)
-
-    if hostel.owner_id != session["user_id"]:
-        flash("Unauthorized action.", "danger")
-        return redirect(url_for("hostel.my_hostels"))
-
-    Favorite.query.filter_by(hostel_id=hostel.id).delete()
-    Review.query.filter_by(hostel_id=hostel.id).delete()
-    Booking.query.filter_by(hostel_id=hostel.id).delete()
-    db.session.delete(hostel)
-    db.session.commit()
-
-    flash("Hostel deleted successfully!", "success")
-    return redirect(url_for("hostel.my_hostels"))
-
-
-@hostel.route("/approve-hostel/<int:hostel_id>")
-def approve_hostel(hostel_id):
+@app.route("/admin-dashboard")
+def admin_dashboard():
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
     if session.get("role") != "admin":
-        flash("Unauthorized.", "danger")
         return redirect(url_for("home"))
 
-    hostel_item = Hostel.query.get_or_404(hostel_id)
-    hostel_item.status = "Approved"
+    total_users = User.query.count()
+    students = User.query.filter_by(role="student").count()
+    owners = User.query.filter_by(role="owner").count()
+    admins = User.query.filter_by(role="admin").count()
+    total_hostels = Hostel.query.count()
+    total_bookings = Booking.query.count()
+    pending_bookings = Booking.query.filter_by(status="Pending").count()
+    approved_bookings = Booking.query.filter_by(status="Approved").count()
+    rejected_bookings = Booking.query.filter_by(status="Rejected").count()
+    total_reviews = Review.query.count()
+    users = User.query.order_by(User.id.desc()).limit(50).all()
+    announcements = Announcement.query.order_by(Announcement.created_at.desc()).limit(20).all()
+    pending_hostels = Hostel.query.filter_by(status="Pending").limit(50).all()
+    approved_hostels = Hostel.query.filter_by(status="Approved").count()
+    rejected_hostels = Hostel.query.filter_by(status="Rejected").count()
 
-    notification = Notification(
-        user_id=hostel_item.owner_id,
-        message=f"🎉 Your hostel '{hostel_item.name}' has been approved and is now visible to students."
+    top_hostels = sorted(
+        Hostel.query.filter_by(status="Approved").all(),
+        key=lambda h: h.average_rating,
+        reverse=True
+    )[:5]
+
+    hostel_names = [h.name for h in top_hostels]
+    hostel_ratings = [h.average_rating for h in top_hostels]
+
+    return render_template(
+        "admin_dashboard.html",
+        total_users=total_users,
+        students=students,
+        owners=owners,
+        admins=admins,
+        total_hostels=total_hostels,
+        total_bookings=total_bookings,
+        pending_bookings=pending_bookings,
+        approved_bookings=approved_bookings,
+        rejected_bookings=rejected_bookings,
+        total_reviews=total_reviews,
+        users=users,
+        pending_hostels=pending_hostels,
+        approved_hostels=approved_hostels,
+        rejected_hostels=rejected_hostels,
+        hostel_names=hostel_names,
+        hostel_ratings=hostel_ratings,
+        announcements=announcements,
     )
-    db.session.add(notification)
-
-    owner = User.query.get(hostel_item.owner_id)
-    if owner:
-        msg = Message(
-            subject="HOSTEL SCOUT - Hostel Approved",
-            recipients=[owner.email]
-        )
-        msg.body = f"""
-Congratulations!
-
-Your hostel "{hostel_item.name}" has been approved.
-
-Students can now see and book your hostel.
-
-Thank you for using HOSTEL SCOUT.
-"""
-        try:
-            mail.send(msg)
-        except Exception as exc:
-            print("EMAIL ERROR:", exc)
-
-    db.session.commit()
-
-    flash("Hostel approved successfully.", "success")
-    return redirect(url_for("admin_dashboard"))
 
 
-@hostel.route("/reject-hostel/<int:hostel_id>")
-def reject_hostel(hostel_id):
+@app.route("/admin/announcement/add", methods=["POST"])
+def add_announcement():
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
     if session.get("role") != "admin":
-        flash("Unauthorized.", "danger")
         return redirect(url_for("home"))
 
-    hostel_item = Hostel.query.get_or_404(hostel_id)
-    hostel_item.status = "Rejected"
+    title = request.form.get("title")
+    message = request.form.get("message")
 
-    notification = Notification(
-        user_id=hostel_item.owner_id,
-        message=f" Your hostel '{hostel_item.name}' was rejected. Please update it and submit again."
-    )
-    db.session.add(notification)
+    announcement = Announcement(title=title, message=message)
+    db.session.add(announcement)
 
-    owner = User.query.get(hostel_item.owner_id)
-    if owner:
-        msg = Message(
-            subject="HOSTEL SCOUT - Hostel Rejected",
-            recipients=[owner.email]
+    users = User.query.all()
+    notifications = [
+        Notification(
+            user_id=user.id,
+            message=f"📢 {title}\n\n{message}",
+            is_read=False,
         )
-        msg.body = f"""
-Hello,
-
-Unfortunately your hostel "{hostel_item.name}" was not approved.
-
-Please update the listing and submit it again.
-
-Thank you.
-"""
-        try:
-            mail.send(msg)
-        except Exception as exc:
-            print("EMAIL ERROR:", exc)
-
+        for user in users
+    ]
+    db.session.add_all(notifications)
     db.session.commit()
 
-    flash("Hostel rejected successfully.", "warning")
+    flash("Announcement published successfully.", "success")
     return redirect(url_for("admin_dashboard"))
 
+
+@app.route("/admin/announcement/delete/<int:id>")
+def delete_announcement(id):
+    """Delete an announcement by id for admin users."""
+
+    if "user_id" not in session:
+        return redirect(url_for("auth.login"))
+
+    if session.get("role") != "admin":
+        return redirect(url_for("home"))
+
+    announcement = Announcement.query.get_or_404(id)
+    db.session.delete(announcement)
+    db.session.commit()
+
+    flash("Announcement deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/delete-user/<int:user_id>")
+def delete_user(user_id):
+
+    if "user_id" not in session:
+        return redirect(url_for("auth.login"))
+
+    if session.get("role") != "admin":
+        return redirect(url_for("home"))
+
+    user = User.query.get_or_404(user_id)
+
+    if user.id == session["user_id"]:
+        flash("You cannot delete your own account.", "warning")
+        return redirect(url_for("admin_dashboard"))
+
+    if user.role == "admin":
+        flash("Admin accounts cannot be deleted.", "danger")
+        return redirect(url_for("admin_dashboard"))
+
+    if user.role == "student":
+        Booking.query.filter_by(student_id=user.id).delete()
+    elif user.role == "owner":
+        hostels = Hostel.query.filter_by(owner_id=user.id).all()
+        for h in hostels:
+            Booking.query.filter_by(hostel_id=h.id).delete()
+            db.session.delete(h)
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("User deleted successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.context_processor
+def notification_count():
+
+    if "user_id" not in session:
+        return dict(unread_notifications=0)
+
+    unread = Notification.query.filter_by(
+        user_id=session["user_id"],
+        is_read=False
+    ).count()
+
+    return dict(unread_notifications=unread)
+
+
+@app.route("/test-email")
+def test_email():
+    print("MAIL_SERVER:", app.config["MAIL_SERVER"])
+    print("MAIL_PORT:", app.config["MAIL_PORT"])
+    print("MAIL_USE_TLS:", app.config["MAIL_USE_TLS"])
+    print("MAIL_USE_SSL:", app.config.get("MAIL_USE_SSL"))
+
+    msg = Message(
+        subject="HOSTEL SCOUT Test",
+        recipients=["josephniiquaye84@gmail.com"]
+    )
+
+    msg.body = "Testing email."
+    mail.send(msg)
+
+    return "Sent!"
+
+
+@app.route("/verify/<token>")
+def verify_email(token):
+
+    try:
+        email = serializer.loads(
+            token,
+            salt="email-confirm",
+            max_age=3600
+        )
+
+    except Exception:
+        flash("Verification link has expired.", "danger")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("auth.login"))
+
+    user.is_verified = True
+    db.session.commit()
+
+    flash("Email verified successfully.", "success")
+    return redirect(url_for("auth.login"))
+
+
+@app.context_processor
+def inject_current_user():
+
+    user = None
+
+    if "user_id" in session:
+        user = User.query.get(session["user_id"])
+
+    return dict(current_user=user)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
