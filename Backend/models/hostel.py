@@ -11,6 +11,7 @@ from flask import (
     current_app,
 )
 
+from sqlalchemy.orm import selectinload
 from werkzeug.utils import secure_filename
 
 from extensions import db
@@ -28,6 +29,7 @@ from models.occupancy import Occupancy
 
 hostel = Blueprint("hostel", __name__)
 
+
 @hostel.route("/add-hostel", methods=["GET", "POST"])
 def add_hostel():
     """Add a new hostel listing."""
@@ -43,12 +45,7 @@ def add_hostel():
         return redirect(url_for("student_dashboard"))
 
     if request.method == "POST":
-
-        upload_path = os.path.join(
-            current_app.static_folder,
-            "uploads"
-        )
-
+        upload_path = os.path.join(current_app.static_folder, "uploads")
         os.makedirs(upload_path, exist_ok=True)
 
         facilities = request.form.getlist("facilities")
@@ -114,22 +111,20 @@ def add_hostel():
             db.session.add(HostelImage(hostel_id=new_hostel.id, image=filename))
 
         gallery = request.files.getlist("gallery")
+        gallery_images = []
         for img in gallery:
             if img and img.filename:
                 gallery_name = secure_filename(img.filename)
                 img.save(os.path.join(upload_path, gallery_name))
-                db.session.add(HostelImage(hostel_id=new_hostel.id, image=gallery_name))
+                gallery_images.append(HostelImage(hostel_id=new_hostel.id, image=gallery_name))
+
+        if gallery_images:
+            db.session.add_all(gallery_images)
 
         db.session.commit()
 
-        flash(
-            "Hostel published successfully!",
-            "success"
-        )
-
-        return redirect(
-            url_for("hostel.my_hostels")
-        )
+        flash("Hostel published successfully!", "success")
+        return redirect(url_for("hostel.my_hostels"))
 
     return render_template("add_hostel.html")
 
@@ -139,7 +134,11 @@ def my_hostels():
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
-    hostels = Hostel.query.filter_by(owner_id=session["user_id"]).all()
+    hostels = Hostel.query.options(
+        selectinload(Hostel.images),
+        selectinload(Hostel.reviews),
+        selectinload(Hostel.occupancies),
+    ).filter_by(owner_id=session["user_id"]).all()
 
     return render_template("my_hostels.html", hostels=hostels)
 
@@ -147,7 +146,11 @@ def my_hostels():
 @hostel.route("/hostel/<int:hostel_id>")
 def hostel_details(hostel_id):
     """Retrieve and display details for a specific hostel including reviews."""
-    hostel_obj = Hostel.query.get_or_404(hostel_id)
+    hostel_obj = Hostel.query.options(
+        selectinload(Hostel.reviews),
+        selectinload(Hostel.images),
+        selectinload(Hostel.occupancies),
+    ).get_or_404(hostel_id)
 
     reviews = hostel_obj.reviews
 
@@ -156,6 +159,7 @@ def hostel_details(hostel_id):
         hostel=hostel_obj,
         reviews=reviews
     )
+
 
 @hostel.route("/edit-hostel/<int:hostel_id>", methods=["GET", "POST"])
 def edit_hostel(hostel_id):
@@ -182,27 +186,17 @@ def edit_hostel(hostel_id):
 
         if image and image.filename:
             filename = secure_filename(image.filename)
-            upload_path = os.path.join(
-                current_app.static_folder,
-                "uploads"
-            )
+            upload_path = os.path.join(current_app.static_folder, "uploads")
             os.makedirs(upload_path, exist_ok=True)
             image.save(os.path.join(upload_path, filename))
             hostel.image = filename
 
         db.session.commit()
 
-        flash(
-            "Hostel updated successfully!",
-            "success"
-        )
-
+        flash("Hostel updated successfully!", "success")
         return redirect(url_for("hostel.my_hostels"))
 
-    return render_template(
-        "edit_hostel.html",
-        hostel=hostel
-    )
+    return render_template("edit_hostel.html", hostel=hostel)
 
 
 @hostel.route("/delete-hostel/<int:hostel_id>")
@@ -217,30 +211,15 @@ def delete_hostel(hostel_id):
         flash("Unauthorized action.", "danger")
         return redirect(url_for("hostel.my_hostels"))
 
-    Favorite.query.filter_by(
-        hostel_id=hostel.id
-    ).delete()
-
-    Review.query.filter_by(
-        hostel_id=hostel.id
-    ).delete()
-
-    Booking.query.filter_by(
-        hostel_id=hostel.id
-    ).delete()
-
+    Favorite.query.filter_by(hostel_id=hostel.id).delete()
+    Review.query.filter_by(hostel_id=hostel.id).delete()
+    Booking.query.filter_by(hostel_id=hostel.id).delete()
     db.session.delete(hostel)
-
     db.session.commit()
 
-    flash(
-        "Hostel deleted successfully!",
-        "success"
-    )
+    flash("Hostel deleted successfully!", "success")
+    return redirect(url_for("hostel.my_hostels"))
 
-    return redirect(
-        url_for("hostel.my_hostels")
-    )
 
 @hostel.route("/approve-hostel/<int:hostel_id>")
 def approve_hostel(hostel_id):
@@ -253,24 +232,20 @@ def approve_hostel(hostel_id):
         return redirect(url_for("home"))
 
     hostel_item = Hostel.query.get_or_404(hostel_id)
-
     hostel_item.status = "Approved"
 
     notification = Notification(
         user_id=hostel_item.owner_id,
         message=f"🎉 Your hostel '{hostel_item.name}' has been approved and is now visible to students."
     )
-
     db.session.add(notification)
 
     owner = User.query.get(hostel_item.owner_id)
-
     if owner:
         msg = Message(
             subject="HOSTEL SCOUT - Hostel Approved",
             recipients=[owner.email]
         )
-
         msg.body = f"""
 Congratulations!
 
@@ -280,7 +255,6 @@ Students can now see and book your hostel.
 
 Thank you for using HOSTEL SCOUT.
 """
-
         try:
             mail.send(msg)
         except Exception as exc:
@@ -289,7 +263,6 @@ Thank you for using HOSTEL SCOUT.
     db.session.commit()
 
     flash("Hostel approved successfully.", "success")
-
     return redirect(url_for("admin_dashboard"))
 
 
@@ -304,24 +277,20 @@ def reject_hostel(hostel_id):
         return redirect(url_for("home"))
 
     hostel_item = Hostel.query.get_or_404(hostel_id)
-
     hostel_item.status = "Rejected"
 
     notification = Notification(
         user_id=hostel_item.owner_id,
         message=f" Your hostel '{hostel_item.name}' was rejected. Please update it and submit again."
     )
-
     db.session.add(notification)
 
     owner = User.query.get(hostel_item.owner_id)
-
     if owner:
         msg = Message(
             subject="HOSTEL SCOUT - Hostel Rejected",
             recipients=[owner.email]
         )
-
         msg.body = f"""
 Hello,
 
@@ -331,7 +300,6 @@ Please update the listing and submit it again.
 
 Thank you.
 """
-
         try:
             mail.send(msg)
         except Exception as exc:
@@ -340,7 +308,6 @@ Thank you.
     db.session.commit()
 
     flash("Hostel rejected successfully.", "warning")
-
     return redirect(url_for("admin_dashboard"))
 
 
