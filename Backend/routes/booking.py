@@ -304,6 +304,15 @@ def reject_booking(booking_id):
         flash("Unauthorized.", "danger")
         return redirect(url_for("booking.owner_bookings"))
 
+    # FIRST: check if already processed
+    if booking.status != "Pending":
+        flash(
+            "This booking has already been processed.",
+            "warning"
+        )
+        return redirect(url_for("booking.owner_bookings"))
+
+    # THEN: set status
     booking.status = "Rejected"
 
     student = User.query.get(booking.student_id)
@@ -347,14 +356,6 @@ Thank you.
     db.session.commit()
 
     flash("Booking rejected.", "warning")
-    
-
-    if booking.status != "Pending":
-
-        flash(
-              "This booking has already been processed.",
-              "warning"
-        )
 
     return redirect(url_for("booking.owner_bookings"))
 

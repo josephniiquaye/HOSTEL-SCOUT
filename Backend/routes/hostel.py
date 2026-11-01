@@ -106,12 +106,6 @@ def add_hostel():
             image=None,
             map_link=request.form.get("map_link"),
             facilities=facility_string,
-            rooms_available=(
-                int(request.form.get("single_rooms") or 0) +
-                int(request.form.get("double_rooms") or 0) +
-                int(request.form.get("triple_rooms") or 0) +
-                int(request.form.get("quad_rooms") or 0)
-            ),
         )
 
         db.session.add(new_hostel)
@@ -270,7 +264,6 @@ def edit_hostel(hostel_id):
         hostel.name = request.form.get("name")
         hostel.location = request.form.get("location")
         hostel.gender = request.form.get("gender")
-        hostel.rooms_available = int(request.form.get("rooms_available"))
         hostel.description = request.form.get("description")
         hostel.map_link = request.form.get("map_link")
         

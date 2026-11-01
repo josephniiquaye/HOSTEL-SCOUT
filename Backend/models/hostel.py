@@ -77,11 +77,6 @@ class Hostel(db.Model):
         nullable=False
     )
 
-    rooms_available = db.Column(
-        db.Integer,
-        nullable=False
-    )
-
     description = db.Column(
         db.Text,
         nullable=False
@@ -159,6 +154,12 @@ class Hostel(db.Model):
             room.rooms_available <= 0
             for room in self.occupancies
         )
+
+    # TODO: The rooms_available DB column has been replaced by this property.
+    # Run a migration to drop the rooms_available column from the hostels table when ready.
+    @property
+    def rooms_available(self):
+        return sum(o.rooms_available for o in self.occupancies)
 
     @property
     def review_count(self):

@@ -12,7 +12,7 @@ from flask import (
 )
 
 
-from sqlalchemy import func, or_  # type: ignore
+from sqlalchemy import or_  # type: ignore
 from dotenv import load_dotenv
 load_dotenv()
 from config import Config
@@ -128,11 +128,13 @@ def home():
         )
 
     if available:
-        query = query.filter(
-            Hostel.rooms_available > 0
-        )
+        # Filter using live occupancy data (rooms_available is now a property)
+        pass
 
     hostels = query.all()
+
+    if available:
+        hostels = [h for h in hostels if h.rooms_available > 0]
     
     featured_hostels = sorted(
           Hostel.query.filter_by(status="Approved").all(),
@@ -201,14 +203,11 @@ def owner_dashboard():
         owner_id=session["user_id"]
     ).count()
 
-    total_rooms = db.session.query(
-        func.sum(Hostel.rooms_available)
-    ).filter(
-        Hostel.owner_id == session["user_id"]
-    ).scalar()
-
-    if total_rooms is None:
-        total_rooms = 0
+    # Sum rooms_available from live occupancy data (rooms_available is now a property)
+    owner_hostels = Hostel.query.filter_by(
+        owner_id=session["user_id"]
+    ).all()
+    total_rooms = sum(h.rooms_available for h in owner_hostels)
 
     booking_count = Booking.query.join(Hostel).filter(
         Hostel.owner_id == session["user_id"]
