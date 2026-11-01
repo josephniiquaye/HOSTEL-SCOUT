@@ -273,6 +273,7 @@ def edit_hostel(hostel_id):
         hostel.gender = request.form.get("gender")
         hostel.description = request.form.get("description")
         hostel.map_link = request.form.get("map_link")
+        hostel.price = float(request.form.get("price", hostel.price))
 
         # ==========================
         # Update Occupancy Records
