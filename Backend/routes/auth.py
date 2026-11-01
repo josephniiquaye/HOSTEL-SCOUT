@@ -39,6 +39,10 @@ def register():
         confirm_password = request.form.get("confirm_password")
         role = request.form.get("role")
 
+        allowed_roles = {"student", "owner"}
+        if role not in allowed_roles:
+            role = "student"
+
         if password != confirm_password:
             flash("Passwords do not match.", "danger")
             return redirect(url_for("auth.register"))
@@ -446,9 +450,9 @@ def profile():
 
         image = request.files.get("profile_image")
 
-        if image and image.image != "":
+        if image and image.filename:
 
-            filename = secure_filename(image.image)
+            filename = secure_filename(image.filename)
 
             upload_folder = os.path.join(
                 current_app.root_path,
