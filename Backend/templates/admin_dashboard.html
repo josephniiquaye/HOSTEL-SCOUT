@@ -20,7 +20,7 @@ Administrator Dashboard
 
         <h1>
 
-            👨‍💼 Welcome Administrator
+               Welcome Administrator
 
         </h1>
 
@@ -44,7 +44,7 @@ Administrator Dashboard
 
         <h3>
 
-            👥 Total Users
+             Total Users
 
         </h3>
 
@@ -66,7 +66,7 @@ Administrator Dashboard
 
         <h3>
 
-            🎓 Students
+             Students
 
         </h3>
 
@@ -88,7 +88,7 @@ Administrator Dashboard
 
         <h3>
 
-            🏠 Hostel Owners
+             Hostel Owners
 
         </h3>
 
@@ -110,7 +110,7 @@ Administrator Dashboard
 
         <h3>
 
-            🛡 Administrators
+             Administrators
 
         </h3>
 
@@ -132,7 +132,7 @@ Administrator Dashboard
 
         <h3>
 
-            🏨 Hostels
+             Hostels
 
         </h3>
 
@@ -154,7 +154,7 @@ Administrator Dashboard
 
         <h3>
 
-            📅 Bookings
+             Bookings
 
         </h3>
 
@@ -176,7 +176,7 @@ Administrator Dashboard
 
         <h3>
 
-            ⭐ Reviews
+             Reviews
 
         </h3>
 
@@ -198,7 +198,7 @@ Administrator Dashboard
 
         <h3>
 
-            ⏳ Pending
+          Pending
 
         </h3>
 
@@ -267,15 +267,15 @@ Administrator Dashboard
 
             <td class="action-buttons">
 
-               <a href="{{ url_for('hostel.approve_hostel', hostel_id=hostel.id) }}"
-                  class="approve-btn">
-                   ✓ Approve
-               </a>
+               <form method="POST" action="{{ url_for('hostel.approve_hostel', hostel_id=hostel.id) }}" style="display:inline;">
+                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                   <button type="submit" class="approve-btn">✓ Approve</button>
+               </form>
 
-               <a href="{{ url_for('hostel.reject_hostel', hostel_id=hostel.id) }}"
-                 class="reject-btn">
-                 ✕ Reject
-               </a>
+               <form method="POST" action="{{ url_for('hostel.reject_hostel', hostel_id=hostel.id) }}" style="display:inline;">
+                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                   <button type="submit" class="reject-btn">✕ Reject</button>
+               </form>
 
 </td>
 
@@ -442,14 +442,10 @@ Administrator Dashboard
 
             <td>
 
-                <a
-                    href="{{ url_for('delete_announcement', id=announcement.id) }}"
-                    class="btn btn-danger"
-                    onclick="return confirm('Delete announcement?')">
-
-                    Delete
-
-                </a>
+                <form method="POST" action="{{ url_for('delete_announcement', id=announcement.id) }}" style="display:inline;" onsubmit="return confirm('Delete announcement?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
 
             </td>
 
@@ -809,19 +805,13 @@ Administrator Dashboard
 
         {% if user.role != "admin" %}
 
-        <a
-
-            class="btn btn-danger"
-
-            href="{{ url_for('delete_user', user_id=user.id) }}"
-
-            onclick="return confirm('Delete this account permanently?')">
-
-            <i class="fa-solid fa-trash"></i>
-
-            Delete
-
-        </a>
+        <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;" onsubmit="return confirm('Delete this account permanently?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="fa-solid fa-trash"></i>
+                Delete
+            </button>
+        </form>
 
         {% else %}
 

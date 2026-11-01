@@ -62,3 +62,5 @@ class Config:
     MAIL_DEFAULT_SENDER = os.getenv(
         "MAIL_DEFAULT_SENDER"
     )
+
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB

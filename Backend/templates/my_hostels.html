@@ -161,18 +161,13 @@ My Hostels
 
                     </a>
 
-                    <a
-                    class="btn btn-danger"
-
-                    href="{{ url_for('hostel.delete_hostel', hostel_id=hostel.id) }}"
-
-                    onclick="return confirm('Delete this hostel permanently?')">
-
-                        <i class="fa-solid fa-trash"></i>
-
-                        Delete
-
-                    </a>
+                    <form method="POST" action="{{ url_for('hostel.delete_hostel', hostel_id=hostel.id) }}" style="display:inline;" onsubmit="return confirm('Delete this hostel permanently?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-trash"></i>
+                            Delete
+                        </button>
+                    </form>
 
                 </div>
 

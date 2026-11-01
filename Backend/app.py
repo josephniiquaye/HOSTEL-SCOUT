@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from flask import (
     Flask,
@@ -38,6 +39,8 @@ from routes.pdf import pdf
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 
 app = Flask(__name__)
@@ -53,6 +56,28 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 db.init_app(app)
 migrate.init_app(app, db)
 mail.init_app(app)
+
+# -------------------------------------------------------
+# CSRF helpers
+# -------------------------------------------------------
+
+def generate_csrf_token():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    return session['csrf_token']
+
+
+def verify_csrf_token(token):
+    return token and token == session.get('csrf_token')
+
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
+
+# -------------------------------------------------------
+# Rate limiter
+# -------------------------------------------------------
+
+limiter = Limiter(get_remote_address, app=app, default_limits=[])
 
 
 app.register_blueprint(auth)
@@ -336,7 +361,7 @@ def add_announcement():
     return redirect(url_for("admin_dashboard"))
 
 
-@app.route("/admin/announcement/delete/<int:id>")
+@app.route("/admin/announcement/delete/<int:id>", methods=["POST"])
 def delete_announcement(id):
     """Delete an announcement by id for admin users."""
 
@@ -345,6 +370,10 @@ def delete_announcement(id):
 
     if session.get("role") != "admin":
         return redirect(url_for("home"))
+
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('admin_dashboard'))
 
     announcement = Announcement.query.get_or_404(id)
 
@@ -359,7 +388,7 @@ def delete_announcement(id):
 
     return redirect(url_for("admin_dashboard"))
 
-@app.route("/admin/delete-user/<int:user_id>")
+@app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
 def delete_user(user_id):
 
     if "user_id" not in session:
@@ -367,6 +396,10 @@ def delete_user(user_id):
 
     if session.get("role") != "admin":
         return redirect(url_for("home"))
+
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('admin_dashboard'))
 
     user = User.query.get_or_404(user_id)
 
@@ -430,25 +463,6 @@ def notification_count():
     return dict(
         unread_notifications=unread
     )
-
-
-@app.route("/test-email")
-def test_email():
-    print("MAIL_SERVER:", app.config["MAIL_SERVER"])
-    print("MAIL_PORT:", app.config["MAIL_PORT"])
-    print("MAIL_USE_TLS:", app.config["MAIL_USE_TLS"])
-    print("MAIL_USE_SSL:", app.config.get("MAIL_USE_SSL"))
-
-    msg = Message(
-        subject="HOSTEL SCOUT Test",
-        recipients=["josephniiquaye84@gmail.com"]
-    )
-
-    msg.body = "Testing email."
-
-    mail.send(msg)
-
-    return "Sent!"
 
 
 @app.route("/verify/<token>")

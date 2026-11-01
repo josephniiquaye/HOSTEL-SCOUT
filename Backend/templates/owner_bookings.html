@@ -77,25 +77,21 @@
 
                 {% if booking.status == "Pending" %}
 
-                    <a
-                        class="btn"
-                        href="{{ url_for('booking.approve_booking', booking_id=booking.id) }}"
-                        onclick="return confirm('Approve this booking?');">
+                    <form method="POST" action="{{ url_for('booking.approve_booking', booking_id=booking.id) }}" style="display:inline;" onsubmit="return confirm('Approve this booking?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn">
+                            <i class="fa-solid fa-check"></i>
+                            Approve
+                        </button>
+                    </form>
 
-                        <i class="fa-solid fa-check"></i>
-                        Approve
-
-                    </a>
-
-                    <a
-                        class="btn btn-danger"
-                        href="{{ url_for('booking.reject_booking', booking_id=booking.id) }}"
-                        onclick="return confirm('Reject this booking?');">
-
-                        <i class="fa-solid fa-xmark"></i>
-                        Reject
-
-                    </a>
+                    <form method="POST" action="{{ url_for('booking.reject_booking', booking_id=booking.id) }}" style="display:inline;" onsubmit="return confirm('Reject this booking?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-xmark"></i>
+                            Reject
+                        </button>
+                    </form>
 
                 {% elif booking.status == "Approved" %}
 

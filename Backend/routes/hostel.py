@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from flask import (
     Blueprint,
@@ -28,6 +29,12 @@ from models.occupancy import Occupancy
 
 
 hostel = Blueprint("hostel", __name__)
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def allowed_file(filename):
+    return os.path.splitext(filename.lower())[1] in ALLOWED_EXTENSIONS
 
 @hostel.route("/add-hostel", methods=["GET", "POST"])
 def add_hostel():
@@ -133,7 +140,12 @@ def add_hostel():
 
         if cover and cover.filename:
 
-            filename = secure_filename(cover.filename)
+            if not allowed_file(cover.filename):
+                flash("Only JPG, JPEG, PNG, and WEBP images are allowed.", "error")
+                return redirect(request.url)
+
+            ext = os.path.splitext(secure_filename(cover.filename))[1].lower()
+            filename = str(uuid.uuid4()) + ext
 
             cover.save(
                 os.path.join(upload_path, filename)
@@ -172,7 +184,11 @@ def add_hostel():
 
             if img and img.filename:
 
-                gallery_name = secure_filename(img.filename)
+                if not allowed_file(img.filename):
+                    continue
+
+                ext = os.path.splitext(secure_filename(img.filename))[1].lower()
+                gallery_name = str(uuid.uuid4()) + ext
 
                 img.save(
                     os.path.join(upload_path, gallery_name)
@@ -262,7 +278,12 @@ def edit_hostel(hostel_id):
         # Update cover image if a new one was uploaded
         if image and image.filename:
 
-            filename = secure_filename(image.filename)
+            if not allowed_file(image.filename):
+                flash("Only JPG, JPEG, PNG, and WEBP images are allowed.", "error")
+                return redirect(request.url)
+
+            ext = os.path.splitext(secure_filename(image.filename))[1].lower()
+            filename = str(uuid.uuid4()) + ext
 
             upload_path = os.path.join(
                 current_app.static_folder,
@@ -292,7 +313,7 @@ def edit_hostel(hostel_id):
     )
 
 
-@hostel.route("/delete-hostel/<int:hostel_id>")
+@hostel.route("/delete-hostel/<int:hostel_id>", methods=["POST"])
 def delete_hostel(hostel_id):
 
     if "user_id" not in session:
@@ -304,6 +325,11 @@ def delete_hostel(hostel_id):
     if hostel.owner_id != session["user_id"]:
         flash("Unauthorized action.", "danger")
         return redirect(url_for("hostel.my_hostels"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('hostel.my_hostels'))
 
     # Delete favourites
     Favorite.query.filter_by(
@@ -334,7 +360,7 @@ def delete_hostel(hostel_id):
         url_for("hostel.my_hostels")
     )
     
-@hostel.route("/approve-hostel/<int:hostel_id>")
+@hostel.route("/approve-hostel/<int:hostel_id>", methods=["POST"])
 def approve_hostel(hostel_id):
 
     if "user_id" not in session:
@@ -343,6 +369,11 @@ def approve_hostel(hostel_id):
     if session.get("role") != "admin":
         flash("Unauthorized.", "danger")
         return redirect(url_for("home"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('admin_dashboard'))
 
     hostel_item = Hostel.query.get_or_404(hostel_id)
 
@@ -383,7 +414,7 @@ Thank you for using HOSTEL SCOUT.
     return redirect(url_for("admin_dashboard"))
 
 
-@hostel.route("/reject-hostel/<int:hostel_id>")
+@hostel.route("/reject-hostel/<int:hostel_id>", methods=["POST"])
 def reject_hostel(hostel_id):
 
     if "user_id" not in session:
@@ -392,6 +423,11 @@ def reject_hostel(hostel_id):
     if session.get("role") != "admin":
         flash("Unauthorized.", "danger")
         return redirect(url_for("home"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('admin_dashboard'))
 
     hostel_item = Hostel.query.get_or_404(hostel_id)
 

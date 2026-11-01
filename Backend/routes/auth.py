@@ -1,4 +1,6 @@
-from flask import session
+import os
+import uuid
+
 from werkzeug.security import check_password_hash
 
 from flask import (
@@ -23,8 +25,15 @@ from flask_mail import Message
 from extensions import mail
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
+from app import limiter
 
 auth = Blueprint("auth", __name__)
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
+
+def allowed_file(filename):
+    return os.path.splitext(filename.lower())[1] in ALLOWED_EXTENSIONS
 
 
 @auth.route("/register", methods=["GET", "POST"])
@@ -118,6 +127,7 @@ This link expires in one hour.
 
 
 @auth.route("/login", methods=["GET", "POST"])
+@limiter.limit("10/minute")
 def login():
 
     if request.method == "POST":
@@ -165,6 +175,7 @@ def login():
 
 
 @auth.route("/resend-verification", methods=["GET", "POST"])
+@limiter.limit("5/hour")
 def resend_verification():
     """Handle resending of email verification tokens for unverified users.
 
@@ -248,6 +259,7 @@ HOSTEL SCOUT
 
 
 @auth.route("/forgot-password", methods=["GET", "POST"])
+@limiter.limit("5/hour")
 def forgot_password():
     """Handle forgot password requests and send reset emails."""
 
@@ -452,7 +464,12 @@ def profile():
 
         if image and image.filename:
 
-            filename = secure_filename(image.filename)
+            if not allowed_file(image.filename):
+                flash("Only JPG, JPEG, PNG, and WEBP images are allowed.", "error")
+                return redirect(url_for("auth.profile"))
+
+            ext = os.path.splitext(secure_filename(image.filename))[1].lower()
+            filename = str(uuid.uuid4()) + ext
 
             upload_folder = os.path.join(
                 current_app.root_path,

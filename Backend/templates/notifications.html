@@ -19,16 +19,18 @@
             <br><br>
 
             {% if not n.is_read %}
-                <a href="{{ url_for('notification.mark_read', id=n.id) }}">
-                    Mark as Read
-                </a>
+                <form method="POST" action="{{ url_for('notification.mark_read', id=n.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm">Mark as Read</button>
+                </form>
             {% endif %}
 
             |
 
-            <a href="{{ url_for('notification.delete_notification', id=n.id) }}">
-                Delete
-            </a>
+            <form method="POST" action="{{ url_for('notification.delete_notification', id=n.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
 
         </div>
 

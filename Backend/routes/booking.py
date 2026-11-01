@@ -4,7 +4,8 @@ from flask import (
     redirect,
     url_for,
     flash,
-    session
+    session,
+    request
 )
 
 from flask_mail import Message
@@ -201,16 +202,17 @@ def owner_bookings():
 # APPROVE BOOKING
 # ===================================================
 
-@booking.route("/approve-booking/<int:booking_id>")
+@booking.route("/approve-booking/<int:booking_id>", methods=["POST"])
 def approve_booking(booking_id):
-    """Approve a booking: verify owner, update status, notify student and send email.
-
-    Redirects to login if no user is in session. Only the hostel owner may approve
-    the booking; otherwise flashes unauthorized and redirects to owner bookings.
-    """
+    """Approve a booking: verify owner, update status, notify student and send email."""
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('booking.owner_bookings'))
 
     booking_record = Booking.query.get_or_404(booking_id)
     
@@ -284,16 +286,17 @@ Thank you for using HOSTEL SCOUT.
 # REJECT BOOKING
 # ===================================================
 
-@booking.route("/reject-booking/<int:booking_id>")
+@booking.route("/reject-booking/<int:booking_id>", methods=["POST"])
 def reject_booking(booking_id):
-    """Reject a booking as the hostel owner.
-
-    Verifies ownership, updates booking status to 'Rejected', creates a
-    notification for the student, and attempts to send an email.
-    """
+    """Reject a booking as the hostel owner."""
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('booking.owner_bookings'))
 
     booking = Booking.query.get_or_404(booking_id)
 

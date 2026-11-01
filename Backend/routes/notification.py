@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session
+from flask import Blueprint, render_template, redirect, url_for, session, request, flash
 from extensions import db
 from models.notification import Notification
 
@@ -21,11 +21,16 @@ def notifications():
     )
 
 
-@notification.route("/notification/read/<int:id>")
+@notification.route("/notification/read/<int:id>", methods=["POST"])
 def mark_read(id):
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('notification.notifications'))
 
     notification = Notification.query.get_or_404(id)
 
@@ -39,11 +44,16 @@ def mark_read(id):
     return redirect(url_for("notification.notifications"))
 
 
-@notification.route("/notification/delete/<int:id>")
+@notification.route("/notification/delete/<int:id>", methods=["POST"])
 def delete_notification(id):
 
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('notification.notifications'))
 
     notification = Notification.query.get_or_404(id)
 
