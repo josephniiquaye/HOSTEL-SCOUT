@@ -103,8 +103,17 @@ def home():
     rating = request.args.get("rating")
     available = request.args.get("available")
     sort = request.args.get("sort")
+    page = request.args.get('page', 1, type=int)
+    per_page = 12
 
-    query = Hostel.query.options(joinedload(Hostel.reviews)).filter_by(status="Approved")
+    # ------------------------------------------------------------------
+    # Build query with all SQL-expressible filters applied at the DB layer
+    # ------------------------------------------------------------------
+    query = (
+        Hostel.query
+        .options(joinedload(Hostel.reviews))
+        .filter_by(status="Approved")
+    )
 
     if search:
         query = query.filter(
@@ -115,87 +124,74 @@ def home():
         )
 
     if location:
-        query = query.filter(
-            Hostel.location.ilike(f"%{location}%")
-        )
+        query = query.filter(Hostel.location.ilike(f"%{location}%"))
 
     if gender:
-        query = query.filter(
-            Hostel.gender == gender
-        )
+        query = query.filter(Hostel.gender == gender)
 
     if max_price:
-        query = query.filter(
-            Hostel.price <= float(max_price)
-        )
+        query = query.filter(Hostel.price <= float(max_price))
 
-    if available:
-        # Filter using live occupancy data (rooms_available is now a property)
-        pass
+    # Apply default DB-level ordering for the common (no sort param) case
+    if not sort:
+        query = query.order_by(Hostel.created_at.desc())
 
+    # Fetch filtered set; rating/available/sort require computed properties
+    # so they must be evaluated in Python after the SQL query.
     hostels = query.all()
 
+    # ------------------------------------------------------------------
+    # Python-only filters: computed average_rating and rooms_available
+    # ------------------------------------------------------------------
     if available:
         hostels = [h for h in hostels if h.rooms_available > 0]
 
-    featured_hostels = sorted(
-          Hostel.query.options(joinedload(Hostel.reviews)).filter_by(status="Approved").all(),
-          key=lambda h: h.average_rating,
-          reverse=True
-    )[:4]
-
     if rating:
-        hostels = [
-            h for h in hostels
-            if h.average_rating >= float(rating)
-        ]
+        hostels = [h for h in hostels if h.average_rating >= float(rating)]
 
+    # ------------------------------------------------------------------
+    # Sorting
+    # ------------------------------------------------------------------
     if sort == "low":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.price
-        )
-
+        hostels = sorted(hostels, key=lambda h: h.price)
     elif sort == "high":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.price,
-            reverse=True
-        )
-
+        hostels = sorted(hostels, key=lambda h: h.price, reverse=True)
     elif sort == "rating":
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.average_rating,
-            reverse=True
-        )
+        hostels = sorted(hostels, key=lambda h: h.average_rating, reverse=True)
+    # default order already applied at query level above
 
-    else:
-        hostels = sorted(
-            hostels,
-            key=lambda h: h.created_at,
-            reverse=True
-        )
-
-    page = request.args.get('page', 1, type=int)
-    per_page = 12
+    # ------------------------------------------------------------------
+    # Paginate the final Python list
+    # ------------------------------------------------------------------
     total = len(hostels)
     start = (page - 1) * per_page
     end = start + per_page
-    items = hostels[start:end]
+    page_items = hostels[start:end]
 
     class SimplePagination:
-        def __init__(self, items, page, per_page, total):
+        def __init__(self, items, pg, pp, tot):
             self.items = items
-            self.page = page
-            self.per_page = per_page
-            self.total = total
-            self.has_prev = page > 1
-            self.has_next = end < total
-            self.prev_num = page - 1
-            self.next_num = page + 1
+            self.page = pg
+            self.per_page = pp
+            self.total = tot
+            self.has_prev = pg > 1
+            self.has_next = (pg * pp) < tot
+            self.prev_num = pg - 1
+            self.next_num = pg + 1
 
-    hostels_pag = SimplePagination(items, page, per_page, total)
+    hostels_pag = SimplePagination(page_items, page, per_page, total)
+
+    # Featured hostels reuse the already-loaded full approved set when no
+    # filters are active; otherwise fall back to a separate query so the
+    # featured section always shows top-rated approved hostels.
+    if not any([search, location, gender, max_price, rating, available, sort]):
+        featured_hostels = sorted(hostels, key=lambda h: h.average_rating, reverse=True)[:4]
+    else:
+        featured_hostels = sorted(
+            Hostel.query.options(joinedload(Hostel.reviews)).filter_by(status="Approved").all(),
+            key=lambda h: h.average_rating,
+            reverse=True
+        )[:4]
 
     return render_template(
         "index.html",
