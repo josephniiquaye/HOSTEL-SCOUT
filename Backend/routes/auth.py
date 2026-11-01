@@ -21,6 +21,8 @@ from werkzeug.security import generate_password_hash
 
 from extensions import db
 from models.user import User
+from models.booking import Booking
+from models.favorite import Favorite
 from flask_mail import Message
 from extensions import mail
 from itsdangerous import URLSafeTimedSerializer
@@ -308,7 +310,7 @@ This link expires in one hour.
                 print(e)
 
         flash(
-            "If the email exists, a password reset link has been sent.",
+            "If that email address is registered, you will receive a password reset link shortly.",
             "info"
         )
 
@@ -376,6 +378,35 @@ def reset_password(token):
     )
     
     
+@auth.route("/settings/delete-account", methods=["POST"])
+def delete_account():
+    """Permanently delete the current user's account and all associated data."""
+    if "user_id" not in session:
+        return redirect(url_for("auth.login"))
+
+    from app import verify_csrf_token
+    if not verify_csrf_token(request.form.get('csrf_token')):
+        flash('Invalid CSRF token.', 'error')
+        return redirect(url_for('auth.settings'))
+
+    user_id = session["user_id"]
+    user = User.query.get_or_404(user_id)
+
+    # Cascade delete: bookings and favorites owned by this student.
+    # Hostel-owned records (reviews, bookings, favorites, images, occupancies)
+    # are handled by the SQLAlchemy cascade on the Hostel relationship.
+    Booking.query.filter_by(student_id=user_id).delete()
+    Favorite.query.filter_by(student_id=user_id).delete()
+
+    # db.session.delete triggers cascade for hostels and notifications
+    db.session.delete(user)
+    db.session.commit()
+
+    session.clear()
+    flash("Your account has been deleted.", "info")
+    return redirect(url_for("home"))
+
+
 @auth.route("/settings", methods=["GET", "POST"])
 def settings():
     """View and update the current user's settings.

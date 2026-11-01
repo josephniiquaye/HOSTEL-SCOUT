@@ -49,9 +49,6 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 
-print("Loaded MAIL_SERVER:", app.config.get("MAIL_SERVER"))
-print("Loaded MAIL_PORT:", app.config.get("MAIL_PORT"))
-print("Loaded Config:", Config)
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
 

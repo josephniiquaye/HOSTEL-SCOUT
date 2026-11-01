@@ -32,12 +32,12 @@ def mark_read(id):
         flash('Invalid CSRF token.', 'error')
         return redirect(url_for('notification.notifications'))
 
-    notification = Notification.query.get_or_404(id)
+    notif = Notification.query.get_or_404(id)
 
-    if notification.user_id != session["user_id"]:
+    if notif.user_id != session["user_id"]:
         return redirect(url_for("notification.notifications"))
 
-    notification.is_read = True
+    notif.is_read = True
 
     db.session.commit()
 
@@ -55,12 +55,12 @@ def delete_notification(id):
         flash('Invalid CSRF token.', 'error')
         return redirect(url_for('notification.notifications'))
 
-    notification = Notification.query.get_or_404(id)
+    notif = Notification.query.get_or_404(id)
 
-    if notification.user_id != session["user_id"]:
+    if notif.user_id != session["user_id"]:
         return redirect(url_for("notification.notifications"))
 
-    db.session.delete(notification)
+    db.session.delete(notif)
 
     db.session.commit()
 

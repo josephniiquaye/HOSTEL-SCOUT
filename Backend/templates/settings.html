@@ -126,9 +126,10 @@ Account Settings
 
             <label class="switch">
 
+                <!-- TODO: Not yet implemented -->
                 <input
                     type="checkbox"
-                    checked>
+                    disabled>
 
                 <span class="slider"></span>
 
@@ -146,9 +147,10 @@ Account Settings
 
             <label class="switch">
 
+                <!-- TODO: Not yet implemented -->
                 <input
                     type="checkbox"
-                    checked>
+                    disabled>
 
                 <span class="slider"></span>
 
@@ -166,8 +168,10 @@ Account Settings
 
             <label class="switch">
 
+                <!-- TODO: Not yet implemented -->
                 <input
-                    type="checkbox">
+                    type="checkbox"
+                    disabled>
 
                 <span class="slider"></span>
 
@@ -195,11 +199,12 @@ Account Settings
 
         </p>
 
-        <button class="btn btn-danger">
-
-            Delete Account
-
-        </button>
+        <form method="POST" action="{{ url_for('auth.delete_account') }}" onsubmit="return confirm('Are you sure? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">
+                Delete Account
+            </button>
+        </form>
 
     </div>
 

@@ -12,7 +12,6 @@ from flask import (
     current_app,
 )
 
-from flask import current_app
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import joinedload
 
@@ -96,12 +95,6 @@ def add_hostel():
             # Default price (used for listings)
             price=float(request.form["price"]),
 
-            # Occupancy pricing
-            single_price=float(single_price) if single_price else None,
-            double_price=float(double_price) if double_price else None,
-            triple_price=float(triple_price) if triple_price else None,
-            quad_price=float(quad_price) if quad_price else None,
-
             gender=request.form["gender"],
             description=request.form["description"],
             image=None,
@@ -170,16 +163,11 @@ def add_hostel():
         # -----------------------------------
 
         gallery = request.files.getlist("gallery")
-        
-        print("=" * 50)
-        print("Cover:", request.files.get("image"))
 
-        print("Gallery count:", len(gallery))
-
+        current_app.logger.debug("Cover: %s", request.files.get("image"))
+        current_app.logger.debug("Gallery count: %d", len(gallery))
         for i, img in enumerate(gallery):
-            print(f"{i}: {img.filename}")
-
-        print("=" * 50)
+            current_app.logger.debug("Gallery[%d]: %s", i, img.filename)
 
         for img in gallery:
 
@@ -239,14 +227,10 @@ def hostel_details(hostel_id):
 
     reviews = hostel_obj.reviews
 
-    print("=" * 50)
-    print("Hostel:", hostel_obj.name)
-    print("Images:", len(hostel_obj.images))
-
+    current_app.logger.debug("Hostel: %s", hostel_obj.name)
+    current_app.logger.debug("Images: %d", len(hostel_obj.images))
     for img in hostel_obj.images:
-        print(img.image)
-
-    print("=" * 50)
+        current_app.logger.debug("Image: %s", img.image)
 
     return render_template(
         "hostel_details.html",

@@ -161,7 +161,7 @@ Student Dashboard
 
     <a class="btn"
 
-       href="#">
+       href="{{ url_for('auth.profile') }}">
 
         <i class="fa-solid fa-user"></i>
 
@@ -292,10 +292,7 @@ Student Dashboard
 
 <div class="no-results">
 
-    <img
-        src="{{ url_for('static', filename='images/empty.png') }}"
-        alt="No Hostels"
-        style="width:220px; margin-bottom:20px;">
+    <i class="fa-solid fa-building-circle-xmark fa-3x" style="color: #ccc; margin-bottom:20px;"></i>
 
     <h2>
 

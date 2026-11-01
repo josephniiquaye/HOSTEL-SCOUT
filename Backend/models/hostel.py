@@ -30,26 +30,14 @@ class Hostel(db.Model):
         nullable=False
     )
 
-    # Default price shown in hostel listings
-    single_price = db.Column(
-        db.Float,
-        nullable=True
-    )
-
-    double_price = db.Column(
-        db.Float,
-        nullable=True
-    )
-
-    triple_price = db.Column(
-        db.Float,
-        nullable=True
-    )
-
-    quad_price = db.Column(
-        db.Float,
-        nullable=True
-    )
+    # TODO: These redundant price columns are superseded by the Occupancy table.
+    # Run a migration to drop single_price, double_price, triple_price, quad_price
+    # from the hostels table when ready:
+    # flask db migrate -m 'remove redundant price columns'
+    # single_price = db.Column(db.Float, nullable=True)
+    # double_price = db.Column(db.Float, nullable=True)
+    # triple_price = db.Column(db.Float, nullable=True)
+    # quad_price   = db.Column(db.Float, nullable=True)
 
     # Number of spaces available for each occupancy
     single_rooms = db.Column(
