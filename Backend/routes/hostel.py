@@ -59,6 +59,18 @@ def add_hostel():
 
         os.makedirs(upload_path, exist_ok=True)
 
+        # -----------------------------------
+        # Validate cover image extension FIRST
+        # before any database writes (F1 fix)
+        # -----------------------------------
+
+        cover = request.files.get("image")
+
+        if cover and cover.filename:
+            if not allowed_file(cover.filename):
+                flash("Only JPG, JPEG, PNG, and WEBP images are allowed.", "error")
+                return redirect(request.url)
+
         # -------------------------------
         # Hostel Facilities
         # -------------------------------
@@ -136,13 +148,7 @@ def add_hostel():
         # Save Cover Image
         # -----------------------------------
 
-        cover = request.files.get("image")
-
         if cover and cover.filename:
-
-            if not allowed_file(cover.filename):
-                flash("Only JPG, JPEG, PNG, and WEBP images are allowed.", "error")
-                return redirect(request.url)
 
             ext = os.path.splitext(secure_filename(cover.filename))[1].lower()
             filename = str(uuid.uuid4()) + ext
