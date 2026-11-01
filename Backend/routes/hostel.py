@@ -14,6 +14,7 @@ from flask import (
 
 from flask import current_app
 from werkzeug.utils import secure_filename
+from sqlalchemy.orm import joinedload
 
 from extensions import db
 from models.hostel import Hostel
@@ -220,9 +221,15 @@ def my_hostels():
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
-    hostels = Hostel.query.filter_by(owner_id=session["user_id"]).all()
+    page = request.args.get('page', 1, type=int)
+    hostels_pag = (
+        Hostel.query
+        .options(joinedload(Hostel.reviews))
+        .filter_by(owner_id=session["user_id"])
+        .paginate(page=page, per_page=12, error_out=False)
+    )
 
-    return render_template("my_hostels.html", hostels=hostels)
+    return render_template("my_hostels.html", hostels=hostels_pag.items, hostels_pag=hostels_pag)
 
 
 @hostel.route("/hostel/<int:hostel_id>")
@@ -266,7 +273,41 @@ def edit_hostel(hostel_id):
         hostel.gender = request.form.get("gender")
         hostel.description = request.form.get("description")
         hostel.map_link = request.form.get("map_link")
-        
+
+        # ==========================
+        # Update Occupancy Records
+        # ==========================
+
+        occupancy_types = [
+            ("Single Room", "single_price", "single_rooms"),
+            ("Double Room", "double_price", "double_rooms"),
+            ("Triple Room", "triple_price", "triple_rooms"),
+            ("Quad Room",   "quad_price",   "quad_rooms"),
+        ]
+
+        for occ_name, price_field, rooms_field in occupancy_types:
+            price_val = request.form.get(price_field)
+            rooms_val = request.form.get(rooms_field)
+            if price_val and rooms_val:
+                try:
+                    price_float = float(price_val)
+                    rooms_int = int(rooms_val)
+                except ValueError:
+                    continue
+                occ_record = Occupancy.query.filter_by(
+                    hostel_id=hostel.id,
+                    occupancy=occ_name
+                ).first()
+                if occ_record:
+                    occ_record.price = price_float
+                    occ_record.rooms_available = rooms_int
+                elif rooms_int > 0:
+                    db.session.add(Occupancy(
+                        hostel_id=hostel.id,
+                        occupancy=occ_name,
+                        price=price_float,
+                        rooms_available=rooms_int
+                    ))
 
         # ==========================
         # Update Hostel Image

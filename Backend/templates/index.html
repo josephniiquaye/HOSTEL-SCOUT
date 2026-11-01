@@ -97,7 +97,7 @@ HOSTEL SCOUT | Home
 
         <div class="hostel-grid">
 
-            {% for hostel in hostels %}
+            {% for hostel in hostels_pag.items %}
 
             <div class="hostel-card">
 
@@ -204,7 +204,7 @@ HOSTEL SCOUT | Home
                         </a>
 
                         {% if hostel.occupancies and hostel.occupancies|length > 0 %}
-                        <a href="{{ url_for('booking.book_hostel', hostel_id=hostel.id,occupancy_id=hostel.occupancies[0].id) }}">
+                        <a href="{{ url_for('hostel.hostel_details', hostel_id=hostel.id) }}">
 
                             <i class="fa-solid fa-calendar-check"></i>
 
@@ -251,6 +251,11 @@ HOSTEL SCOUT | Home
 
             {% endfor %}
 
+        </div>
+
+        <div class="pagination-controls" style="text-align:center; margin:20px 0;">
+            {% if hostels_pag.has_prev %}<a href="?page={{ hostels_pag.prev_num }}">Previous</a>{% endif %}
+            {% if hostels_pag.has_next %}<a href="?page={{ hostels_pag.next_num }}">Next</a>{% endif %}
         </div>
 
     </div>

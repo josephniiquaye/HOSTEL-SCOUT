@@ -133,15 +133,80 @@ Edit Hostel
 
             </div>
 
+            <!-- Occupancy Pricing -->
             <div class="form-card">
 
-                <h3>Rooms Available</h3>
+                <h3>
+                    <i class="fa-solid fa-users"></i>
+                    Occupancy &amp; Pricing
+                </h3>
 
-                <input
-                type="number"
-                name="rooms_available"
-                value="{{ hostel.rooms_available }}"
-                required>
+                <p>Update per-room type pricing and availability.</p>
+
+                {% set occ_map = {} %}
+                {% for occ in hostel.occupancies %}
+                    {% if occ_map.update({occ.occupancy: occ}) %}{% endif %}
+                {% endfor %}
+
+                <table class="occupancy-table">
+                    <thead>
+                        <tr>
+                            <th>Occupancy</th>
+                            <th>Price (GH₵)</th>
+                            <th>Available Spaces</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 in a Room</td>
+                            <td>
+                                <input type="number" step="0.01" name="single_price"
+                                    value="{{ occ_map['Single Room'].price if 'Single Room' in occ_map else '' }}"
+                                    placeholder="0.00">
+                            </td>
+                            <td>
+                                <input type="number" name="single_rooms" min="0"
+                                    value="{{ occ_map['Single Room'].rooms_available if 'Single Room' in occ_map else 0 }}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2 in a Room</td>
+                            <td>
+                                <input type="number" step="0.01" name="double_price"
+                                    value="{{ occ_map['Double Room'].price if 'Double Room' in occ_map else '' }}"
+                                    placeholder="0.00">
+                            </td>
+                            <td>
+                                <input type="number" name="double_rooms" min="0"
+                                    value="{{ occ_map['Double Room'].rooms_available if 'Double Room' in occ_map else 0 }}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3 in a Room</td>
+                            <td>
+                                <input type="number" step="0.01" name="triple_price"
+                                    value="{{ occ_map['Triple Room'].price if 'Triple Room' in occ_map else '' }}"
+                                    placeholder="0.00">
+                            </td>
+                            <td>
+                                <input type="number" name="triple_rooms" min="0"
+                                    value="{{ occ_map['Triple Room'].rooms_available if 'Triple Room' in occ_map else 0 }}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4 in a Room</td>
+                            <td>
+                                <input type="number" step="0.01" name="quad_price"
+                                    value="{{ occ_map['Quad Room'].price if 'Quad Room' in occ_map else '' }}"
+                                    placeholder="0.00">
+                            </td>
+                            <td>
+                                <input type="number" name="quad_rooms" min="0"
+                                    value="{{ occ_map['Quad Room'].rooms_available if 'Quad Room' in occ_map else 0 }}">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
             </div>
 

@@ -16,7 +16,7 @@ Student Dashboard
 
         <h1>
 
-            👋 Welcome,
+              Welcome,
 
             {{ session.get("fullname") }}
 
@@ -73,7 +73,7 @@ Student Dashboard
 
         <h1>
 
-            --
+            {{ booking_count }}
 
         </h1>
 
@@ -95,7 +95,7 @@ Student Dashboard
 
         <h1>
 
-            --
+            {{ favorites_count }}
 
         </h1>
 
@@ -185,7 +185,7 @@ Student Dashboard
 
 <div class="hostel-grid">
 
-{% for hostel in hostels %}
+{% for hostel in hostels_pag.items %}
 
 <div class="hostel-card">
 
@@ -323,6 +323,11 @@ Student Dashboard
 
 {% endfor %}
 
+</div>
+
+<div class="pagination-controls" style="text-align:center; margin:20px 0;">
+    {% if hostels_pag.has_prev %}<a href="?page={{ hostels_pag.prev_num }}">Previous</a>{% endif %}
+    {% if hostels_pag.has_next %}<a href="?page={{ hostels_pag.next_num }}">Next</a>{% endif %}
 </div>
 
 {% endblock %}

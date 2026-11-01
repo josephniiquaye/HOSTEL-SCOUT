@@ -205,6 +205,11 @@ My Hostels
 
     {% endif %}
 
+    <div class="pagination-controls" style="text-align:center; margin:20px 0;">
+        {% if hostels_pag is defined and hostels_pag.has_prev %}<a href="?page={{ hostels_pag.prev_num }}">Previous</a>{% endif %}
+        {% if hostels_pag is defined and hostels_pag.has_next %}<a href="?page={{ hostels_pag.next_num }}">Next</a>{% endif %}
+    </div>
+
 </div>
 
 {% endblock %}

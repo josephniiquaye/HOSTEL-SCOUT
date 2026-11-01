@@ -13,6 +13,7 @@ from flask import (
 
 
 from sqlalchemy import or_  # type: ignore
+from sqlalchemy.orm import joinedload  # type: ignore
 from dotenv import load_dotenv
 load_dotenv()
 from config import Config
@@ -27,6 +28,7 @@ from models.review import Review
 from models.announcement import Announcement
 from models.hostel_image import HostelImage
 from models.occupancy import Occupancy
+from models.favorite import Favorite
 
 from routes.auth import auth
 from routes.hostel import hostel
@@ -102,7 +104,7 @@ def home():
     available = request.args.get("available")
     sort = request.args.get("sort")
 
-    query = Hostel.query.filter_by(status="Approved")
+    query = Hostel.query.options(joinedload(Hostel.reviews)).filter_by(status="Approved")
 
     if search:
         query = query.filter(
@@ -135,13 +137,12 @@ def home():
 
     if available:
         hostels = [h for h in hostels if h.rooms_available > 0]
-    
+
     featured_hostels = sorted(
-          Hostel.query.filter_by(status="Approved").all(),
+          Hostel.query.options(joinedload(Hostel.reviews)).filter_by(status="Approved").all(),
           key=lambda h: h.average_rating,
           reverse=True
     )[:4]
-
 
     if rating:
         hostels = [
@@ -176,9 +177,30 @@ def home():
             reverse=True
         )
 
+    page = request.args.get('page', 1, type=int)
+    per_page = 12
+    total = len(hostels)
+    start = (page - 1) * per_page
+    end = start + per_page
+    items = hostels[start:end]
+
+    class SimplePagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.has_prev = page > 1
+            self.has_next = end < total
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    hostels_pag = SimplePagination(items, page, per_page, total)
+
     return render_template(
         "index.html",
         hostels=hostels,
+        hostels_pag=hostels_pag,
         featured_hostels=featured_hostels
     )
 
@@ -186,8 +208,28 @@ def home():
 @app.route("/student-dashboard")
 def student_dashboard():
     """Student dashboard route displaying all hostels."""
-    hostels = Hostel.query.order_by(Hostel.created_at.desc()).all()
-    return render_template("student_dashboard.html", hostels=hostels)
+    if "user_id" not in session:
+        return redirect(url_for("auth.login"))
+
+    page = request.args.get('page', 1, type=int)
+    hostels_pag = (
+        Hostel.query
+        .options(joinedload(Hostel.reviews))
+        .filter_by(status="Approved")
+        .order_by(Hostel.created_at.desc())
+        .paginate(page=page, per_page=12, error_out=False)
+    )
+
+    booking_count = Booking.query.filter_by(student_id=session["user_id"]).count()
+    favorites_count = Favorite.query.filter_by(student_id=session["user_id"]).count()
+
+    return render_template(
+        "student_dashboard.html",
+        hostels=hostels_pag.items,
+        hostels_pag=hostels_pag,
+        booking_count=booking_count,
+        favorites_count=favorites_count,
+    )
 
 
 @app.route("/owner-dashboard")
@@ -287,7 +329,7 @@ def admin_dashboard():
     # -----------------------------------
 
     top_hostels = sorted(
-        Hostel.query.all(),
+        Hostel.query.options(joinedload(Hostel.reviews)).all(),
         key=lambda h: h.average_rating,
         reverse=True
     )[:5]

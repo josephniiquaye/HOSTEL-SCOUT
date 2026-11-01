@@ -88,7 +88,7 @@ def booking_receipt(booking_id):
     pdf_file.drawString(
         50,
         y,
-        f"Price: GH₵ {booking.hostel.price}"
+        f"Price: GH₵ {booking.occupancy.price if booking.occupancy else booking.hostel.price}"
     )
 
     y -= 25
